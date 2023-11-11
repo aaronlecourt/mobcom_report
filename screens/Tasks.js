@@ -58,27 +58,38 @@ function Tasks() {
     );
   };
 
-  // Compute sections based on the current assignments state
-  const sections = [
-    { title: 'Assignments', data: assignments.filter((item) => !item.isComplete) },
-    { title: 'Complete', data: assignments.filter((item) => item.isComplete) },
-  ];
+  // filter sections based on the current assignments state
+  // add for previous (missed) assignments
+  const incompleteAssignments = assignments.filter((item) => !item.isComplete);
+  const completeAssignments = assignments.filter((item) => item.isComplete);
 
   return (
     <View style={{ flex: 1, padding: 15, backgroundColor: '#fff', color: '#5b5b5b' }}>
       <ScrollView>
-        {sections.map(({ title, data }) => (
-          <View key={title} style={{ marginBottom: 20 }}>
+        {/* Render "Assignments" section */}
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5b5b5b' }}>
+            Assignments
+          </Text>
+          {incompleteAssignments.map((item) => (
+            <TouchableOpacity key={item.id} onPress={() => handleAssignmentPress(item)}>
+              <AssignmentItem item={item} onToggleCompletion={() => toggleCompletion(item.id)} />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {completeAssignments.length > 0 && (
+          <View style={{ marginBottom: 20 }}>
             <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5b5b5b' }}>
-              {title}
+              Complete
             </Text>
-            {data.map((item) => (
+            {completeAssignments.map((item) => (
               <TouchableOpacity key={item.id} onPress={() => handleAssignmentPress(item)}>
                 <AssignmentItem item={item} onToggleCompletion={() => toggleCompletion(item.id)} />
               </TouchableOpacity>
             ))}
           </View>
-        ))}
+        )}
       </ScrollView>
 
       {/* Add Button */}

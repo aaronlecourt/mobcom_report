@@ -43,7 +43,7 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
       >
         <Ionicons
           name={isComplete ? 'ios-checkmark-circle' : 'arrow-forward-circle-outline'}
-          size={25}
+          size={28}
           color={isComplete ? '#cecece' : '#5b5b5b'}
         />
       </TouchableOpacity>
@@ -54,7 +54,7 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
           <Text style={{ fontSize: 16, fontWeight: 'bold', color: isComplete ? '#cecece' : '#5b5b5b' }}>
             {item.description}
           </Text>
-          <Text style={{ fontSize: 16, color: isComplete ? '#cecece' : '#5b5b5b' }}>{item.subject}</Text>
+          <Text style={{ fontWeight: 'bold', fontSize: 15, color: isComplete ? '#cecece' : '#5b5b5b' }}>{item.subject}</Text>
         </View>
         <Text style={{ color: isComplete ? '#cecece' : '#5b5b5b' }}>
           {item.dueDate} at {item.time}
@@ -62,8 +62,8 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
         {/* has reminder */}
         {item.reminder && (
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons name="ios-time-outline" size={15} color="rgba(0,0,255,0.3)" />
-            <Text style={{ color: 'rgba(0,0,255,0.3)', fontStyle: 'italic' }}>{item.reminder} minutes before due</Text>
+            <Ionicons name="notifications-circle-sharp" size={15} color={isComplete ? '#cecece' : 'rgba(0,0,255,1)'} />
+            <Text style={{ color: isComplete ? '#cecece' : 'rgba(0,0,255,1)', fontStyle: 'italic' }}>{item.reminder} minutes before due</Text>
           </View>
         )}
       </View>
