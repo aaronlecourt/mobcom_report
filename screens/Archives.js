@@ -1,26 +1,42 @@
-// Import necessary React and React Native components
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView } from 'react-native';
+import * as FileSystem from 'expo-file-system';
 import ArchiveItem from '../components/ArchiveItem';
 
-// Functional component for displaying archived assignments
 const ArchiveScreen = ({ route }) => {
-  // Extract the 'archive' parameter from the route or set it to an empty array if not present
   const { archive } = route.params || { archive: [] };
 
+  // Function to save the archive data to a JSON file
+  const saveArchiveToFile = async (archiveData) => {
+    try {
+      const archiveJson = JSON.stringify(archiveData);
+      const filePath = `${FileSystem.documentDirectory}archive.json`;
+
+      await FileSystem.writeAsStringAsync(filePath, archiveJson);
+
+      console.log('Archive data saved to file:', filePath);
+    } catch (error) {
+      console.error('Error saving archive data:', error);
+    }
+  };
+
+  // Use useEffect to save archive to file and log when archive changes
+  useEffect(() => {
+    // Save archive to file
+    saveArchiveToFile(archive);
+
+    // Log when archive changes
+    console.log('Archive updated:', archive);
+  }, [archive]);
+
   return (
-    // Main container view for the ArchiveScreen
     <View style={{ flex: 1, backgroundColor: '#fff', padding: 15 }}>
-      {/* Scrollable view for displaying archived assignments */}
       <ScrollView>
-        {/* Check if there are archived assignments */}
         {archive.length > 0 ? (
-          // Map through the archived assignments and render ArchiveItem component for each
           archive.map((item) => (
             <ArchiveItem key={item.id} item={item} />
           ))
         ) : (
-          // Display a message if there are no archived assignments
           <Text>No archived assignments</Text>
         )}
       </ScrollView>
@@ -28,5 +44,4 @@ const ArchiveScreen = ({ route }) => {
   );
 };
 
-// Export the ArchiveScreen component as the default export
 export default ArchiveScreen;
