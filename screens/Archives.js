@@ -1,14 +1,23 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
+import ArchiveItem from '../components/ArchiveItem';
 
+const ArchiveScreen = ({ route }) => {
+  const { archive } = route.params || { archive: [] };
 
-function Archives() {
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff', padding:15 }}>
-      <Text>Archives Screen</Text>
-      
+    <View style={{ flex: 1, backgroundColor: '#fff', padding: 15 }}>
+      <ScrollView>
+      {archive.length > 0 ? (
+        archive.map((item) => (
+          <ArchiveItem key={item.id} item={item} />
+        ))
+      ) : (
+        <Text>No archived assignments</Text>
+      )}
+      </ScrollView>
     </View>
   );
-}
+};
 
-export default Archives;
+export default ArchiveScreen;

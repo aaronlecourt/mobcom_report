@@ -27,7 +27,7 @@ const App = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name=" "
+          name="AssignmentDetails"
           component={AssignmentDetailsScreen}
         />
       </Stack.Navigator>
@@ -35,15 +35,21 @@ const App = () => {
   );
 };
 
-const TabNavigator = () => {
+const TabNavigator = ({ navigation, route }) => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
           const iconName = screenOptions[route.name];
-          return <Ionicons name={iconName} size={25} color={color} />;
+          return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarStyle: { position: 'absolute', backgroundColor: '#fff', paddingBottom: 15, paddingTop: 10, height: 70 },
+        tabBarStyle: {
+          position: 'absolute',
+          backgroundColor: '#fff',
+          paddingBottom: 15,
+          paddingTop: 10,
+          height: 70,
+        },
         tabBarActiveTintColor: 'blue',
         tabBarInactiveTintColor: 'grey',
         tabBarLabelStyle: {
@@ -51,9 +57,13 @@ const TabNavigator = () => {
         },
       })}
     >
-      <Tab.Screen name="Tasks" component={TasksScreen} />
+      <Tab.Screen name="Tasks">
+        {() => <TasksScreen navigation={navigation} route={route} />}
+      </Tab.Screen>
       <Tab.Screen name="Analytics" component={AnalyticsScreen} />
-      <Tab.Screen name="Archive" component={ArchiveScreen} />
+      <Tab.Screen name="Archive">
+        {(props) => <ArchiveScreen {...props} route={route} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 };

@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AssignmentItem from '../components/AssignmentItem';
+import Archives from './Archives';
 import { useNavigation } from '@react-navigation/native';
 
 const timeOutDuration = 10000;
 
-function Tasks({ navigation }) {
+function Tasks({ navigation, route }) {
   const [assignments, setAssignments] = useState([
     {
       id: 1,
@@ -56,8 +57,13 @@ function Tasks({ navigation }) {
   const [backgroundColor, setBackgroundColor] = useState('white'); // Initial background color
 
   const handleAssignmentPress = (item) => {
-    navigation.navigate(' ', { assignmentDetails: item });
+    navigation.navigate('AssignmentDetails', { assignmentDetails: item });
   };
+
+  useEffect(() => {
+    // Update the 'archive' parameter whenever the 'archive' state changes
+    navigation.setParams({ archive });
+  }, [archive]);
 
   const toggleCompletion = (itemId) => {
     setAssignments((prevAssignments) =>
@@ -66,55 +72,58 @@ function Tasks({ navigation }) {
           // Clear existing timeout if it exists
           if (timeoutIds[itemId]) {
             clearTimeout(timeoutIds[itemId]);
-  
+
             // Remove the timeout ID from state
             setTimeoutIds((prevTimeoutIds) => {
               const { [itemId]: removedTimeoutId, ...rest } = prevTimeoutIds;
               return rest;
             });
           }
-  
+
           const isComplete = !item.isComplete; // Toggle to its opposite value
           const dateCompleted = isComplete ? new Date().toString() : null;
           const archiveDate = isComplete
             ? new Date(Date.now() + timeOutDuration).toString()
             : null;
-  
+
           let archived = item.archived;
-  
+
           const newAssignment = {
             ...item,
             isComplete,
             dateCompleted,
             archiveDate,
           };
-  
+
           console.log('Old Assignment:', item);
           console.log('New Assignment:', newAssignment);
-  
+
           // If the assignment is marked as complete, schedule a new timeout after 10 seconds
           if (isComplete) {
             const timeoutId = setTimeout(() => {
-              // After 10 seconds, change text color to orange
-              setBackgroundColor('orange');
-  
               // Set archived to true after the 10-second timeout
               archived = !archived;
-  
+
               // Print the updated newAssignment with flipped archived value
               console.log('Updated New Assignment:', {
                 ...newAssignment,
                 archived,
               });
+
+              // Move the completed assignment to the archive array
+              setArchive((prevArchive) => [...prevArchive, { ...newAssignment, archived }]);
+              
+              // Remove the completed assignment from the assignments array
+              setAssignments((prevAssignments) => prevAssignments.filter((a) => a.id !== itemId));
             }, timeOutDuration);
-  
+
             // Save the timeoutId in state to manage and clear it if needed
             setTimeoutIds((prevTimeoutIds) => ({
               ...prevTimeoutIds,
               [itemId]: timeoutId,
             }));
           }
-  
+
           return { ...newAssignment, archived };
         } else {
           return item;
@@ -122,8 +131,7 @@ function Tasks({ navigation }) {
       })
     );
   };
-   
-  
+
   const incompleteAssignments = assignments.filter((item) => !item.isComplete);
   const completeAssignments = assignments.filter((item) => item.isComplete);
 
@@ -140,7 +148,6 @@ function Tasks({ navigation }) {
             </TouchableOpacity>
           ))}
         </View>
-            {/* {console.warn('CHECK',assignments)} */}
         {completeAssignments.length > 0 && (
           <View style={{ marginBottom: 20 }}>
             <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5b5b5b' }}>
@@ -152,7 +159,9 @@ function Tasks({ navigation }) {
               </TouchableOpacity>
             ))}
           </View>
-        )}  
+        )}
+      {/* Display archived assignments */}
+          {/* <Archives archive={archive} /> */}
       </ScrollView>
 
       <TouchableOpacity

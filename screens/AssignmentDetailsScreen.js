@@ -22,7 +22,6 @@ const AssignmentDetailsScreen = ({ route }) => {
         <>
           <Text>Date Completed: {assignmentDetails.dateCompleted}</Text>
           <Text>Expected Archive Date: {assignmentDetails.archiveDate}</Text>
-          <Text>Arch: {assignmentDetails.archived ? 'Yes' : 'No'}</Text>
         </>
       )}
     </View>
