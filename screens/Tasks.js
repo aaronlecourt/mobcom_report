@@ -1,12 +1,18 @@
+// Import necessary React and React Native components and libraries
 import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import AssignmentItem from '../components/AssignmentItem';
+import { Ionicons } from '@expo/vector-icons'; // Import Ionicons for icon usage
+import AssignmentItem from '../components/AssignmentItem'; // Import custom AssignmentItem component
 import { useNavigation } from '@react-navigation/native';
 
-const timeOutDuration = 10000;
+// Set the timeout duration for assignment completion
+const timeOutDuration = 10000; //10seconds for demo
 
+//other timeout values: 10sec = 10000, 30sec=30000, 1hr = 1 * 60 * 60 * 1000, 1day = 1 * 24 * 60 * 60 * 1000, 10days = 10 * 24 * 60 * 60 * 1000, 15days = 15 * 24 * 60 * 60 * 1000, 30days = 30 * 24 * 60 * 60 * 1000
+
+// Functional component for displaying tasks and assignments
 function Tasks({ navigation, route }) {
+  // State variables to manage assignments, archive, timeouts, and background color
   const [assignments, setAssignments] = useState([
     {
       id: 1,
@@ -50,20 +56,22 @@ function Tasks({ navigation, route }) {
       archiveDate: null,
       archived: false,
     },
-  ]);
-  const [archive, setArchive] = useState([]);
-  const [timeoutIds, setTimeoutIds] = useState({});
+  ]); // Initial assignments data
+  const [archive, setArchive] = useState([]); // Archived assignments
+  const [timeoutIds, setTimeoutIds] = useState({}); // Timeout IDs for managing timeouts
   const [backgroundColor, setBackgroundColor] = useState('white'); // Initial background color
 
+  // Function to handle navigation to AssignmentDetails screen on assignment press
   const handleAssignmentPress = (item) => {
     navigation.navigate('AssignmentDetails', { assignmentDetails: item });
   };
 
+  // Effect to update navigation params when the 'archive' state changes
   useEffect(() => {
-    // Update the 'archive' parameter whenever the 'archive' state changes
     navigation.setParams({ archive });
   }, [archive]);
 
+  // Function to toggle completion status of an assignment
   const toggleCompletion = (itemId) => {
     setAssignments((prevAssignments) =>
       prevAssignments.map((item) => {
@@ -71,19 +79,16 @@ function Tasks({ navigation, route }) {
           // Clear existing timeout if it exists
           if (timeoutIds[itemId]) {
             clearTimeout(timeoutIds[itemId]);
-
-            // Remove the timeout ID from state
             setTimeoutIds((prevTimeoutIds) => {
               const { [itemId]: removedTimeoutId, ...rest } = prevTimeoutIds;
               return rest;
             });
           }
 
-          const isComplete = !item.isComplete; // Toggle to its opposite value
+          // Update assignment details based on completion status
+          const isComplete = !item.isComplete;
           const dateCompleted = isComplete ? new Date().toString() : null;
-          const archiveDate = isComplete
-            ? new Date(Date.now() + timeOutDuration).toString()
-            : null;
+          const archiveDate = isComplete ? new Date(Date.now() + timeOutDuration).toString() : null;
 
           let archived = item.archived;
 
@@ -94,20 +99,10 @@ function Tasks({ navigation, route }) {
             archiveDate,
           };
 
-          console.log('Old Assignment:', item);
-          console.log('New Assignment:', newAssignment);
-
           // If the assignment is marked as complete, schedule a new timeout after 10 seconds
           if (isComplete) {
             const timeoutId = setTimeout(() => {
-              // Set archived to true after the 10-second timeout
               archived = !archived;
-
-              // Print the updated newAssignment with flipped archived value
-              console.log('Updated New Assignment:', {
-                ...newAssignment,
-                archived,
-              });
 
               // Move the completed assignment to the archive array
               setArchive((prevArchive) => [...prevArchive, { ...newAssignment, archived }]);
@@ -131,12 +126,15 @@ function Tasks({ navigation, route }) {
     );
   };
 
+  // Filter assignments based on completion status
   const incompleteAssignments = assignments.filter((item) => !item.isComplete);
   const completeAssignments = assignments.filter((item) => item.isComplete);
 
+  // Render the component
   return (
     <View style={{ flex: 1, padding: 15, backgroundColor: backgroundColor, color: '#5b5b5b' }}>
       <ScrollView>
+        {/* Display incomplete assignments */}
         <View style={{ marginBottom: 20 }}>
           <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5b5b5b' }}>
             Assignments
@@ -147,6 +145,8 @@ function Tasks({ navigation, route }) {
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Display complete assignments if any */}
         {completeAssignments.length > 0 && (
           <View style={{ marginBottom: 20 }}>
             <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5b5b5b' }}>
@@ -159,10 +159,13 @@ function Tasks({ navigation, route }) {
             ))}
           </View>
         )}
-      {/* Display archived assignments */}
-          {/* <Archives archive={archive} /> */}
+
+        {/* Display archived assignments */}
+        {/* <Archives archive={archive} /> */}
+
       </ScrollView>
 
+      {/* Button for adding a new task */}
       <TouchableOpacity
         style={{
           position: 'absolute',
@@ -190,4 +193,5 @@ function Tasks({ navigation, route }) {
   );
 }
 
+// Export the component as the default export
 export default Tasks;
