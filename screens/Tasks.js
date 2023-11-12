@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AssignmentItem from '../components/AssignmentItem';
-import Archives from './Archives';
 import { useNavigation } from '@react-navigation/native';
 
 const timeOutDuration = 10000;
