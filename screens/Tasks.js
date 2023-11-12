@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AssignmentItem from '../components/AssignmentItem';
 import { useNavigation } from '@react-navigation/native';
 
-function Tasks() {
+const timeOutDuration = 10000;
+
+function Tasks({ navigation }) {
   const [assignments, setAssignments] = useState([
     {
       id: 1,
@@ -17,6 +19,8 @@ function Tasks() {
       submission: 'online',
       isComplete: false,
       dateCompleted: null,
+      archiveDate: null,
+      archived: false,
     },
     {
       id: 2,
@@ -29,6 +33,8 @@ function Tasks() {
       submission: '1/4',
       isComplete: false,
       dateCompleted: null,
+      archiveDate: null,
+      archived: false,
     },
     {
       id: 3,
@@ -41,10 +47,13 @@ function Tasks() {
       submission: '1 whole',
       isComplete: false,
       dateCompleted: null,
+      archiveDate: null,
+      archived: false,
     },
   ]);
-
-  const navigation = useNavigation();
+  const [archive, setArchive] = useState([]);
+  const [timeoutIds, setTimeoutIds] = useState({});
+  const [backgroundColor, setBackgroundColor] = useState('white'); // Initial background color
 
   const handleAssignmentPress = (item) => {
     navigation.navigate(' ', { assignmentDetails: item });
@@ -52,21 +61,75 @@ function Tasks() {
 
   const toggleCompletion = (itemId) => {
     setAssignments((prevAssignments) =>
-      prevAssignments.map((item) =>
-        item.id === itemId ? { ...item, isComplete: !item.isComplete } : item
-      )
+      prevAssignments.map((item) => {
+        if (item.id === itemId) {
+          // Clear existing timeout if it exists
+          if (timeoutIds[itemId]) {
+            clearTimeout(timeoutIds[itemId]);
+  
+            // Remove the timeout ID from state
+            setTimeoutIds((prevTimeoutIds) => {
+              const { [itemId]: removedTimeoutId, ...rest } = prevTimeoutIds;
+              return rest;
+            });
+          }
+  
+          const isComplete = !item.isComplete; // Toggle to its opposite value
+          const dateCompleted = isComplete ? new Date().toString() : null;
+          const archiveDate = isComplete
+            ? new Date(Date.now() + timeOutDuration).toString()
+            : null;
+  
+          let archived = item.archived;
+  
+          const newAssignment = {
+            ...item,
+            isComplete,
+            dateCompleted,
+            archiveDate,
+          };
+  
+          console.log('Old Assignment:', item);
+          console.log('New Assignment:', newAssignment);
+  
+          // If the assignment is marked as complete, schedule a new timeout after 10 seconds
+          if (isComplete) {
+            const timeoutId = setTimeout(() => {
+              // After 10 seconds, change text color to orange
+              setBackgroundColor('orange');
+  
+              // Set archived to true after the 10-second timeout
+              archived = !archived;
+  
+              // Print the updated newAssignment with flipped archived value
+              console.log('Updated New Assignment:', {
+                ...newAssignment,
+                archived,
+              });
+            }, timeOutDuration);
+  
+            // Save the timeoutId in state to manage and clear it if needed
+            setTimeoutIds((prevTimeoutIds) => ({
+              ...prevTimeoutIds,
+              [itemId]: timeoutId,
+            }));
+          }
+  
+          return { ...newAssignment, archived };
+        } else {
+          return item;
+        }
+      })
     );
   };
-
-  // filter sections based on the current assignments state
-  // add for previous (missed) assignments
+   
+  
   const incompleteAssignments = assignments.filter((item) => !item.isComplete);
   const completeAssignments = assignments.filter((item) => item.isComplete);
 
   return (
-    <View style={{ flex: 1, padding: 15, backgroundColor: '#fff', color: '#5b5b5b' }}>
+    <View style={{ flex: 1, padding: 15, backgroundColor: backgroundColor, color: '#5b5b5b' }}>
       <ScrollView>
-        {/* Render "Assignments" section */}
         <View style={{ marginBottom: 20 }}>
           <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5b5b5b' }}>
             Assignments
@@ -77,7 +140,7 @@ function Tasks() {
             </TouchableOpacity>
           ))}
         </View>
-
+            {/* {console.warn('CHECK',assignments)} */}
         {completeAssignments.length > 0 && (
           <View style={{ marginBottom: 20 }}>
             <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5b5b5b' }}>
@@ -89,10 +152,9 @@ function Tasks() {
               </TouchableOpacity>
             ))}
           </View>
-        )}
+        )}  
       </ScrollView>
 
-      {/* Add Button */}
       <TouchableOpacity
         style={{
           position: 'absolute',

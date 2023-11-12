@@ -6,7 +6,7 @@ const AssignmentDetailsScreen = ({ route }) => {
   const { assignmentDetails } = route.params;
 
   return (
-    <View style={{ flex: 1, padding: 15, backgroundColor:'#fff' }}>
+    <View style={{ flex: 1, padding: 15, backgroundColor: '#fff' }}>
       <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>
         Assignment Details
       </Text>
@@ -19,7 +19,11 @@ const AssignmentDetailsScreen = ({ route }) => {
       <Text>Submission: {assignmentDetails.submission}</Text>
       <Text>Is Complete: {assignmentDetails.isComplete ? 'Yes' : 'No'}</Text>
       {assignmentDetails.isComplete && (
-        <Text>Date Completed: {assignmentDetails.dateCompleted}</Text>
+        <>
+          <Text>Date Completed: {assignmentDetails.dateCompleted}</Text>
+          <Text>Expected Archive Date: {assignmentDetails.archiveDate}</Text>
+          <Text>Arch: {assignmentDetails.archived ? 'Yes' : 'No'}</Text>
+        </>
       )}
     </View>
   );
