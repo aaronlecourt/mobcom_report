@@ -1,29 +1,42 @@
-// Import necessary React and React Native components
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { firebase } from '../config';
 
-// Functional component for displaying individual assignments
 const AssignmentItem = ({ item, onToggleCompletion }) => {
-  // Local state to track completion status
-  const [isComplete, setIsComplete] = useState(item.isComplete);
+  const navigation = useNavigation();
+  const [localIsComplete, setLocalIsComplete] = useState(item.isComplete);
 
-  useEffect(() => {
-    // Update the local completion status when the item prop changes
-    setIsComplete(item.isComplete);
-  }, [item]);
+  const toggleCompletion = async () => {
+    try {
+      // Update the isComplete property in Firebase
+      const appRef = firebase.firestore().collection('assignments');
+      await appRef.doc(item.id).update({
+        isComplete: !localIsComplete,
+      });
 
-  // Function to toggle completion status
-  const toggleCompletion = () => {
-    // Toggle the completion status locally
-    setIsComplete(!isComplete);
-    // Call the callback to update the parent component's state
-    onToggleCompletion(item.id);
+      console.log('isComplete updated in Firebase');
+
+      // Update local state after Firebase update
+      setLocalIsComplete(prevIsComplete => !prevIsComplete);
+
+      // Call onToggleCompletion with the updated item
+      onToggleCompletion(item.id);
+    } catch (error) {
+      console.error('Error updating isComplete in Firebase: ', error);
+    }
   };
 
+  // console.log('Local isComplete:', localIsComplete); // Log the local isComplete
+
+  if (!item) {
+    return null;
+  }
+
   return (
-    // Main container view for an assignment item
-    <View
+    <TouchableOpacity
+      onPress={() => navigation.navigate(' ', { assignmentDetails: item })}
       style={{
         marginBottom: 15,
         flexDirection: 'row',
@@ -31,12 +44,11 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
         backgroundColor: '#f7f7f7',
         display: 'flex',
         justifyContent: 'center',
-        padding: 5,
-        borderRadius: 5,
-        alignItems: 'center',
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        borderRadius: 10,
       }}
     >
-      {/* Toggleable circle button */}
       <TouchableOpacity
         style={{
           marginRight: 10,
@@ -46,49 +58,48 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
         }}
         onPress={toggleCompletion}
       >
-        {/* Ionicons for displaying completion status */}
         <Ionicons
-          name={isComplete ? 'ios-checkmark-circle' : 'arrow-forward-circle-outline'}
+          name={localIsComplete ? 'ios-checkmark-circle' : 'arrow-forward-circle-outline'}
           size={28}
-          color={isComplete ? '#cecece' : '#5b5b5b'}
+          color={localIsComplete ? '#cecece' : '#5b5b5b'}
         />
       </TouchableOpacity>
 
-      {/* Assignment details */}
       <View style={{ flex: 1 }}>
-        {/* Row with description and subject, justified space-between */}
         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
-          {/* Text for displaying description */}
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: isComplete ? '#cecece' : '#5b5b5b' }}>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
             {item.description}
           </Text>
-          {/* Text for displaying subject */}
-          <Text style={{ fontWeight: 'bold', fontSize: 15, color: isComplete ? '#cecece' : '#5b5b5b' }}>
+          <Text style={{ fontWeight: 'bold', fontSize: 15, color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
             {item.subject}
           </Text>
         </View>
 
-        {/* Text for displaying due date and time */}
-        <Text style={{ color: isComplete ? '#cecece' : '#5b5b5b' }}>
+        <Text style={{ color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
           {item.dueDate} at {item.time}
         </Text>
 
-        {/* Check if there's a reminder */}
         {item.reminder && (
-          // View for displaying reminder icon and text
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            {/* Ionicons for displaying reminder icon */}
-            <Ionicons name="notifications-circle-sharp" size={15} color={isComplete ? '#cecece' : 'rgba(0,0,255,1)'} />
-            {/* Text for displaying reminder minutes before due */}
-            <Text style={{ color: isComplete ? '#cecece' : 'rgba(0,0,255,1)', fontStyle: 'italic' }}>
+          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+            <Ionicons
+              name="notifications-circle-sharp"
+              size={15}
+              color={localIsComplete ? '#cecece' : 'rgba(0,0,255,1)'}
+            />
+            <Text
+              style={{
+                color: localIsComplete ? '#cecece' : 'rgba(0,0,255,1)',
+                fontStyle: 'italic',
+                marginLeft: 5,
+              }}
+            >
               {item.reminder} minutes before due
             </Text>
           </View>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
-// Export the AssignmentItem component as the default export
 export default AssignmentItem;

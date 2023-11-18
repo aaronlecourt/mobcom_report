@@ -3,11 +3,14 @@ import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+
 //screen imports
 import TasksScreen from './screens/Tasks';
 import AnalyticsScreen from './screens/Analytics';
 import ArchiveScreen from './screens/Archives';
 import AssignmentDetailsScreen from './screens/AssignmentDetailsScreen';
+import AddAssignmentScreen from './screens/AddAssignment'
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -37,8 +40,12 @@ const App = () => {
         />
         {/* Screen for displaying assignment details */}
         <Stack.Screen
-          name="AssignmentDetails"
+          name=" "
           component={AssignmentDetailsScreen}
+        />
+        <Stack.Screen 
+          name="Add Assignment" 
+          component={AddAssignmentScreen} 
         />
       </Stack.Navigator>
     </NavigationContainer>

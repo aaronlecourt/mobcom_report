@@ -7,22 +7,32 @@ const AssignmentDetailsScreen = ({ route }) => {
   // Extract assignment details from route parameters
   const { assignmentDetails } = route.params;
 
+  // Extracting time from the due date
+  const dueDateTime = new Date(assignmentDetails.dueDate);
+  const formattedDueDate = dueDateTime.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  // Extracting time from the due date
+  const formattedDueTime = dueDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
   // Render the assignment details
   return (
     <View style={{ flex: 1, padding: 15, backgroundColor: '#fff' }}>
       {/* Title */}
       <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>
-        Assignment Details
+      Description: {assignmentDetails.description}
       </Text>
 
       {/* Display assignment details */}
-      <Text>ID: {assignmentDetails.id}</Text>
-      <Text>Date Created: {assignmentDetails.dateCreated}</Text>
-      <Text>Due Date: {assignmentDetails.dueDate}</Text>
-      <Text>Time: {assignmentDetails.time}</Text>
+      <Text>Due Date: {formattedDueDate}</Text>
+      <Text>Time: {formattedDueTime}</Text>
       <Text>Subject: {assignmentDetails.subject}</Text>
-      <Text>Description: {assignmentDetails.description}</Text>
+      <Text>Reminder: {assignmentDetails.reminder}</Text>
       <Text>Submission: {assignmentDetails.submission}</Text>
+      <Text>{assignmentDetails.dateCompleted}</Text>
 
       {/* Display completion status */}
       <Text>Is Complete: {assignmentDetails.isComplete ? 'Yes' : 'No'}</Text>
@@ -31,7 +41,7 @@ const AssignmentDetailsScreen = ({ route }) => {
       {assignmentDetails.isComplete && (
         <>
           <Text>Date Completed: {assignmentDetails.dateCompleted}</Text>
-          <Text>Expected Archive Date: {assignmentDetails.archiveDate}</Text>
+          {/* Note: 'archiveDate' was not present in the provided details */}
         </>
       )}
     </View>
