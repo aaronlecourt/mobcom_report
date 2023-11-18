@@ -13,27 +13,27 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
       // Update the isComplete property in Firebase
       const appRef = firebase.firestore().collection('assignments');
       const updatedIsComplete = !localIsComplete;
-  
+
       // Set dateCompleted based on isComplete value
       const updatedData = {
         isComplete: updatedIsComplete,
         dateCompleted: updatedIsComplete ? new Date().toISOString() : null, // Set to current date and time
       };
-  
+
       await appRef.doc(item.id).update(updatedData);
-  
+
       console.log('isComplete updated in Firebase');
-  
+
       // Update local state after Firebase update
       setLocalIsComplete((prevIsComplete) => !prevIsComplete);
-  
+
       // Call onToggleCompletion with the updated item
       onToggleCompletion(item.id);
     } catch (error) {
       console.error('Error updating isComplete in Firebase: ', error);
     }
   };
-  
+
   // Format due date and time
   const dueDateTime = new Date(item?.dueDate || 0); // Use a default value if item or dueDate is undefined
   const formattedDueDate = dueDateTime.toLocaleDateString('en-US', {
@@ -44,9 +44,19 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
 
   const formattedTime = dueDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+  // Convert dateCompleted to a serializable format
+  const serializableDateCompleted = item?.dateCompleted ? item.dateCompleted.toISOString() : null;
+
+  const reminderText =
+    item?.reminder && item.reminder > 1
+      ? `${item.reminder} minutes before due`
+      : `${item.reminder} minute before due`;
+
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate(' ', { assignmentDetails: item })}
+      onPress={() =>
+        navigation.navigate(' ', { assignmentDetails: { ...item, dateCompleted: serializableDateCompleted } })
+      }
       style={{
         marginBottom: 15,
         flexDirection: 'row',
@@ -91,11 +101,7 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
 
         {item?.reminder && (
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons
-              name="notifications-circle-sharp"
-              size={15}
-              color={localIsComplete ? '#cecece' : 'rgba(0,0,255,1)'}
-            />
+            <Ionicons name="notifications-circle-sharp" size={15} color={localIsComplete ? '#cecece' : 'rgba(0,0,255,1)'} />
             <Text
               style={{
                 color: localIsComplete ? '#cecece' : 'rgba(0,0,255,1)',
@@ -103,7 +109,7 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
                 marginLeft: 5,
               }}
             >
-              {item.reminder} minutes before due
+              {reminderText}
             </Text>
           </View>
         )}
