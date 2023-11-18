@@ -87,9 +87,10 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
 
       <View style={{ flex: 1 }}>
         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
-            {item?.description || 'No Description'}
-          </Text>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
+          {item?.description?.length > 15 ? `${item.description.substring(0, 15)}...` : item?.description || 'No Description'}
+        </Text>
+
           <Text style={{ fontWeight: 'bold', fontSize: 15, color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
             {item?.subject || 'No Subject'}
           </Text>

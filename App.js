@@ -4,7 +4,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-
 //screen imports
 import TasksScreen from './screens/Tasks';
 import AnalyticsScreen from './screens/Analytics';
@@ -28,6 +27,7 @@ const screenOptions = {
 // Main App component
 const App = () => {
   return (
+    
     // Wrap the app with NavigationContainer
     <NavigationContainer>
       {/* Stack Navigator for handling screens and transitions */}

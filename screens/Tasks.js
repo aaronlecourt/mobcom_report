@@ -1,6 +1,6 @@
 // Import necessary React and React Native components
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native'; // Use ScrollView instead of FlatList
 import { firebase } from '../config';
 import AssignmentItem from '../components/AssignmentItem'; // Import the AssignmentItem component
 import { Ionicons } from '@expo/vector-icons';
@@ -54,54 +54,52 @@ export default function Tasks({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={{ paddingTop: 16, flex: 1 }}>
+      <View style={{  }}>
         {incompleteAssignments.length > 0 ? (
           <>
             <Text style={{ fontSize: 17, fontWeight: 'bold', marginBottom: 10 }}>Remaining Tasks</Text>
-            <FlatList
-              data={incompleteAssignments}
-              renderItem={({ item }) => (
+            <ScrollView>
+              {incompleteAssignments.map((item) => (
                 <AssignmentItem
-                  key={`incomplete-${item.id}`} // Ensure a unique key for incomplete assignments
+                  key={`incomplete-${item.id}`}
                   item={item}
                   onToggleCompletion={(itemId) => {
                     console.log('Toggle completion for item with ID:', itemId);
                   }}
                 />
-              )}
-              keyExtractor={(item) => `incomplete-${item.id}`} // Ensure a unique key for incomplete assignments
-            />
+              ))}
+            </ScrollView>
           </>
         ) : (
           <View style={styles.noTasksContainer}>
             <Text style={styles.noTasksText}>Take a rest! No more tasks left to do.</Text>
             <Image
               source={{ uri: 'https://assets-global.website-files.com/603c87adb15be3cb0b3ed9b5/610e354b42d21a7b18a9270a_41.png' }}
-              style={{ width: 200, height: 200, resizeMode: 'contain', alignSelf: 'center', opacity: 0.5}}
+              style={{ width: 200, height: 200, resizeMode: 'contain', alignSelf: 'center', opacity: 0.5 }}
             />
-            
           </View>
         )}
+      </View>
 
+      <View style={{ flex: 1, paddingBottom: 60 }}>
         {completedAssignments.length > 0 && (
           <>
             <Text style={{ fontSize: 17, fontWeight: 'bold', marginTop: 20, marginBottom: 10 }}>Completed</Text>
-            <FlatList
-              data={completedAssignments}
-              renderItem={({ item }) => (
+            <ScrollView>
+              {completedAssignments.map((item) => (
                 <AssignmentItem
-                  key={`completed-${item.id}`} // Ensure a unique key for completed assignments
+                  key={`completed-${item.id}`}
                   item={item}
                   onToggleCompletion={(itemId) => {
                     console.log('Toggle completion for item with ID:', itemId);
                   }}
                 />
-              )}
-              keyExtractor={(item) => `completed-${item.id}`} // Ensure a unique key for completed assignments
-            />
+              ))}
+            </ScrollView>
           </>
         )}
       </View>
+
       {/* Button for adding a new task */}
       <TouchableOpacity
         style={{
@@ -124,7 +122,6 @@ export default function Tasks({ navigation }) {
           <Ionicons name="ios-add" size={25} color="white" />
         </Text>
       </TouchableOpacity>
-
     </View>
   );
 }
