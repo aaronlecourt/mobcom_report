@@ -9,30 +9,44 @@ const AssignmentDetailsScreen = ({ route }) => {
 
   // Extracting time from the due date
   const dueDateTime = new Date(assignmentDetails.dueDate);
-  const formattedDueDate = dueDateTime.toLocaleDateString('en-US', {
+  const formattedDueDate = dueDateTime.toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 
-  // Extracting time from the due date
-  const formattedDueTime = dueDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formattedDueTime = dueDateTime.toLocaleString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  // Convert dateCompleted to a string if it exists
+  const formattedDateCompleted =
+    assignmentDetails.dateCompleted
+      ? new Date(assignmentDetails.dateCompleted).toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : null;
 
   // Render the assignment details
   return (
     <View style={{ flex: 1, padding: 15, backgroundColor: '#fff' }}>
       {/* Title */}
       <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>
-      Description: {assignmentDetails.description}
+        Description: {assignmentDetails.description}
       </Text>
 
       {/* Display assignment details */}
       <Text>Due Date: {formattedDueDate}</Text>
-      <Text>Time: {formattedDueTime}</Text>
+      <Text>Due Time: {formattedDueTime}</Text>
       <Text>Subject: {assignmentDetails.subject}</Text>
       <Text>Reminder: {assignmentDetails.reminder}</Text>
       <Text>Submission: {assignmentDetails.submission}</Text>
-      <Text>{assignmentDetails.dateCompleted}</Text>
+      <Text></Text>
 
       {/* Display completion status */}
       <Text>Is Complete: {assignmentDetails.isComplete ? 'Yes' : 'No'}</Text>
@@ -40,7 +54,7 @@ const AssignmentDetailsScreen = ({ route }) => {
       {/* Display additional details if the assignment is complete */}
       {assignmentDetails.isComplete && (
         <>
-          <Text>Date Completed: {assignmentDetails.dateCompleted}</Text>
+          <Text>Date Completed: {formattedDateCompleted}</Text>
           {/* Note: 'archiveDate' was not present in the provided details */}
         </>
       )}

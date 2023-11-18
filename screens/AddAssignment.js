@@ -8,6 +8,8 @@ const AddAssignmentScreen = ({ navigation }) => {
   const appRef = firebase.firestore().collection('assignments');
 
   const [isDateTimePickerVisible, setDateTimePickerVisibility] = useState(false);
+  const [dueDate, setDueDate] = useState('');
+  const [buttonText, setButtonText] = useState('Show Date and Time Picker');
 
   const showDateTimePicker = () => {
     setDateTimePickerVisibility(true);
@@ -20,67 +22,74 @@ const AddAssignmentScreen = ({ navigation }) => {
   const handleDateTimeConfirm = (dateTime) => {
     setDueDate(dateTime);
     hideDateTimePicker();
+    setButtonText(dateTime.toLocaleString());
   };
 
-  const [userInput, setUserInput] = useState('');
   const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState(new Date());
   const [reminder, setReminder] = useState('');
   const [subject, setSubject] = useState('');
   const [submission, setSubmission] = useState('');
   const [isComplete, setIsComplete] = useState(false);
   const [dateCompleted, setDateCompleted] = useState(null);
   const [archivedDate, setArchivedDate] = useState(null);
+  const [archived, setArchived] = useState(false);
 
   const pushToFirebase = () => {
-    if (!userInput || !description || !subject || !submission) {
-      alert('Please fill in all fields');
+    if (!description || !dueDate || !subject || !submission) {
+      alert('Please fill in all fields, including the due date');
       return;
     }
-
-    const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-
+  
+    // Parse the string dueDate to a Date object
+    const parsedDueDate = new Date(dueDate);
+  
+    if (isNaN(parsedDueDate.getTime())) {
+      alert('Invalid due date format');
+      return;
+    }
+  
+    const timestamp = new Date().toISOString(); // Convert the current date to string
     const container = {
       createdAt: timestamp,
-      userInput,
       description,
-      dueDate: dueDate.toString(),
+      dueDate: parsedDueDate.toISOString(), // Save as a string
       reminder,
       subject,
       submission,
       isComplete,
-      dateCompleted: dateCompleted ? dateCompleted.toString() : null,
-      archivedDate: archivedDate ? archivedDate.toString() : null,
+      dateCompleted: dateCompleted ? dateCompleted.toISOString() : null,
+      archivedDate: archivedDate ? archivedDate.toISOString() : null,
+      archived,
     };
-
-    appRef.add(container).then(() => {
-      alert('Successfully added!');
-      setUserInput('');
-      setDescription('');
-      setDueDate(new Date());
-      setReminder('');
-      setSubject('');
-      setSubmission('');
-      setIsComplete(false);
-      setDateCompleted(null);
-      setArchivedDate(null);
-      hideDateTimePicker();
-      Keyboard.dismiss();
-    }).catch((error) => {
-      console.log(error);
-    });
+  
+    appRef
+      .add(container)
+      .then(() => {
+        alert('Successfully added!');
+        setDescription('');
+        setDueDate(''); // Clear the dueDate input after successful submission
+        setReminder('');
+        setSubject('');
+        setSubmission('');
+        setIsComplete(false);
+        setDateCompleted(null);
+        setArchivedDate(null);
+        setArchived(false);
+        hideDateTimePicker();
+        setButtonText('Show Date and Time Picker');
+        Keyboard.dismiss();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
+  
+  
 
   return (
     <View style={styles.container}>
       <View style={{ width: '100%', paddingTop: 16 }}>
         <Text>Add New Assignment</Text>
-        <TextInput 
-          placeholder='User Input'
-          style={styles.inputText}
-          onChangeText={(val) => setUserInput(val)}
-          value={userInput}
-        />
         <TextInput 
           placeholder='Description'
           style={styles.inputText}
@@ -88,7 +97,7 @@ const AddAssignmentScreen = ({ navigation }) => {
           value={description}
         />
         <TouchableOpacity onPress={showDateTimePicker}>
-          <Text>Show Date and Time Picker</Text>
+          <Text>{buttonText}</Text>
         </TouchableOpacity>
         <DateTimePickerModal
           isVisible={isDateTimePickerVisible}

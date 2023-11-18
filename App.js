@@ -36,16 +36,18 @@ const App = () => {
         <Stack.Screen
           name="Main"
           component={TabNavigator}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, headerShadowVisible: false }}
         />
         {/* Screen for displaying assignment details */}
         <Stack.Screen
           name=" "
           component={AssignmentDetailsScreen}
+          options={{ headerShadowVisible: false }}
         />
         <Stack.Screen 
           name="Add Assignment" 
           component={AddAssignmentScreen} 
+          options={{ headerShadowVisible: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -23,11 +23,10 @@ export default function Tasks({ navigation }) {
         const completedData = [];
 
         querySnapshot.forEach((document) => {
-          const { createdAt, userInput, description, dueDate, reminder, subject, submission, isComplete, dateCompleted, archivedDate } = document.data();
+          const { createdAt, description, dueDate, reminder, subject, submission, isComplete, dateCompleted, archivedDate, archived } = document.data();
 
           const assignment = {
             id: document.id,
-            userInput,
             description,
             dueDate,
             reminder,
@@ -36,7 +35,8 @@ export default function Tasks({ navigation }) {
             isComplete,
             dateCompleted: dateCompleted ? new Date(dateCompleted) : null,
             archivedDate: archivedDate ? new Date(archivedDate) : null,
-            createdAt
+            createdAt,
+            archived
           };
 
           if (isComplete) {
@@ -136,7 +136,6 @@ const styles = {
     padding: 15,
   },
   noTasksContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },

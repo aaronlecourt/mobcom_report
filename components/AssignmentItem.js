@@ -6,33 +6,43 @@ import { firebase } from '../config';
 
 const AssignmentItem = ({ item, onToggleCompletion }) => {
   const navigation = useNavigation();
-  const [localIsComplete, setLocalIsComplete] = useState(item.isComplete);
+  const [localIsComplete, setLocalIsComplete] = useState(item?.isComplete || false);
 
   const toggleCompletion = async () => {
     try {
       // Update the isComplete property in Firebase
       const appRef = firebase.firestore().collection('assignments');
-      await appRef.doc(item.id).update({
-        isComplete: !localIsComplete,
-      });
-
+      const updatedIsComplete = !localIsComplete;
+  
+      // Set dateCompleted based on isComplete value
+      const updatedData = {
+        isComplete: updatedIsComplete,
+        dateCompleted: updatedIsComplete ? new Date().toISOString() : null, // Set to current date and time
+      };
+  
+      await appRef.doc(item.id).update(updatedData);
+  
       console.log('isComplete updated in Firebase');
-
+  
       // Update local state after Firebase update
-      setLocalIsComplete(prevIsComplete => !prevIsComplete);
-
+      setLocalIsComplete((prevIsComplete) => !prevIsComplete);
+  
       // Call onToggleCompletion with the updated item
       onToggleCompletion(item.id);
     } catch (error) {
       console.error('Error updating isComplete in Firebase: ', error);
     }
   };
+  
+  // Format due date and time
+  const dueDateTime = new Date(item?.dueDate || 0); // Use a default value if item or dueDate is undefined
+  const formattedDueDate = dueDateTime.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
-  // console.log('Local isComplete:', localIsComplete); // Log the local isComplete
-
-  if (!item) {
-    return null;
-  }
+  const formattedTime = dueDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
     <TouchableOpacity
@@ -68,19 +78,19 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
       <View style={{ flex: 1 }}>
         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
           <Text style={{ fontSize: 16, fontWeight: 'bold', color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
-            {item.description}
+            {item?.description || 'No Description'}
           </Text>
           <Text style={{ fontWeight: 'bold', fontSize: 15, color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
-            {item.subject}
+            {item?.subject || 'No Subject'}
           </Text>
         </View>
 
         <Text style={{ color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
-          {item.dueDate} at {item.time}
+          {formattedDueDate} at {formattedTime}
         </Text>
 
-        {item.reminder && (
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+        {item?.reminder && (
+          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
             <Ionicons
               name="notifications-circle-sharp"
               size={15}
