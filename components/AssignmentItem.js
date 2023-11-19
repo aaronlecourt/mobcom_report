@@ -24,7 +24,7 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
   
       await appRef.doc(item.id).update(updatedData);
   
-      console.log('isComplete updated in Firebase');
+      // console.log('isComplete updated in Firebase');
   
       setLocalIsComplete((prevIsComplete) => !prevIsComplete);
   
@@ -55,7 +55,7 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
               // Remove the assignment from the "assignments" collection
               await appRef.doc(item.id).delete();
           
-              console.log('Assignment moved to archives after 10 seconds');
+              // console.log('Assignment moved to archives after 10 seconds');
             }
           } else {
             // Handle the case where the document doesn't exist

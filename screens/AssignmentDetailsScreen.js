@@ -74,7 +74,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
     { id: "5", name: "Online" },
   ]);
 
-  console.log(route)
+  // console.log(route)
   useEffect(() => {
     const fetchSubjects = async () => {
       try {

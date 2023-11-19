@@ -68,7 +68,7 @@ const ArchiveItem = ({ item }) => {
             justifyContent: 'center',
             padding: 10,
             borderBottomWidth: 1,
-            borderColor: '#5b5b5b',
+            borderColor: '#cecece',
             alignItems: 'center',
           }}
         >
