@@ -12,55 +12,64 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
   const toggleCompletion = async () => {
     try {
       const appRef = firebase.firestore().collection('assignments');
+      const archivesRef = firebase.firestore().collection('archives'); // Reference to the "archives" collection
       const updatedIsComplete = !localIsComplete;
-
+  
       const updatedData = {
         isComplete: updatedIsComplete,
         dateCompleted: updatedIsComplete ? new Date().toISOString() : null,
       };
-
+  
       await appRef.doc(item.id).update(updatedData);
-
+  
       console.log('isComplete updated in Firebase');
-
+  
       setLocalIsComplete((prevIsComplete) => !prevIsComplete);
-
+  
       // Call onToggleCompletion with the updated item
       onToggleCompletion(item.id);
-
+  
       // If setting isComplete to true, start a timer for 10 seconds
       if (updatedIsComplete) {
         // Clear any existing timeouts
         timerTimeoutIds.forEach(clearTimeout);
-        
+  
         // Set a new timeout and update the state
         const timeoutId = setTimeout(async () => {
           // Check if the assignment is still marked as complete
           const documentSnapshot = await appRef.doc(item.id).get();
           const { isComplete } = documentSnapshot.data();
-
-          // If still complete, set archived to true and update archivedDate
+  
+          // If still complete, move to archives and update archivedDate
           if (isComplete) {
-            const archiveDate = new Date().toISOString();
-            await appRef.doc(item.id).update({ archived: true, archivedDate: new Date().toISOString() });
-            console.log('Assignment archived after 10 seconds');
+            const archivedDate = new Date().toISOString();
+            await archivesRef.add({
+              ...item,
+              archived: true,
+              archivedDate,
+            });
+  
+            // Remove the assignment from the "assignments" collection
+            await appRef.doc(item.id).delete();
+  
+            console.log('Assignment moved to archives after 10 seconds');
           }
-
+  
           // Remove the completed timeout from the array
           setTimerTimeoutIds((prevTimeoutIds) =>
             prevTimeoutIds.filter((id) => id !== timeoutId)
           );
         }, 10000);
-
+  
         // Update the state with the new timeout ID
         setTimerTimeoutIds((prevTimeoutIds) => [...prevTimeoutIds, timeoutId]);
       } else {
         // If setting isComplete to false, clear all timeouts
         timerTimeoutIds.forEach(clearTimeout);
-
+  
         // Set archived to false when marking as incomplete
         await appRef.doc(item.id).update({ archived: false, archivedDate: null });
-
+  
         // Clear the state
         setTimerTimeoutIds([]);
       }
@@ -68,6 +77,7 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
       console.error('Error updating isComplete in Firebase: ', error);
     }
   };
+  
 
   // Format due date and time
   const dueDateTime = new Date(item?.dueDate || 0); // Use a default value if item or dueDate is undefined
