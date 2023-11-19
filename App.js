@@ -73,7 +73,7 @@ const TabNavigator = ({ navigation, route }) => {
           paddingTop: 10,
           height: 70,
         },
-        tabBarActiveTintColor: 'blue', // Active tab color
+        tabBarActiveTintColor: '#008080', // Active tab color
         tabBarInactiveTintColor: 'grey', // Inactive tab color
         tabBarLabelStyle: {
           fontSize: 13,

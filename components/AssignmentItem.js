@@ -87,7 +87,7 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
 
       <View style={{ flex: 1 }}>
         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={{ fontSize: 16, fontWeight: 'bold', color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
+        <Text style={{ fontSize: 18, fontWeight: 'bold', color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
           {item?.description?.length > 15 ? `${item.description.substring(0, 15)}...` : item?.description || 'No Description'}
         </Text>
 
@@ -102,12 +102,13 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
 
         {item?.reminder && (
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons name="notifications-circle-sharp" size={15} color={localIsComplete ? '#cecece' : 'rgba(0,0,255,1)'} />
+            <Ionicons name="notifications-circle-sharp" size={15} color={localIsComplete ? '#cecece' : '#008080'} />
             <Text
               style={{
-                color: localIsComplete ? '#cecece' : 'rgba(0,0,255,1)',
+                color: localIsComplete ? '#cecece' : '#008080',
                 fontStyle: 'italic',
-                marginLeft: 5,
+                fontWeight: '600',
+                marginLeft: 0,
               }}
             >
               {reminderText}

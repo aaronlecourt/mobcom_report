@@ -57,7 +57,7 @@ export default function Tasks({ navigation }) {
       <View style={{  }}>
         {incompleteAssignments.length > 0 ? (
           <>
-            <Text style={{ fontSize: 17, fontWeight: 'bold', marginBottom: 10 }}>Remaining Tasks</Text>
+            <Text style={{ fontSize: 17, fontWeight: 'bold', marginBottom: 10, color:'#008080' }}>Remaining Tasks</Text>
             <ScrollView>
               {incompleteAssignments.map((item) => (
                 <AssignmentItem
@@ -84,7 +84,7 @@ export default function Tasks({ navigation }) {
       <View style={{ flex: 1, paddingBottom: 60 }}>
         {completedAssignments.length > 0 && (
           <>
-            <Text style={{ fontSize: 17, fontWeight: 'bold', marginTop: 20, marginBottom: 10 }}>Completed</Text>
+            <Text style={{ fontSize: 17, fontWeight: 'bold', marginTop: 20, marginBottom: 10, color: '#008080' }}>Completed</Text>
             <ScrollView>
               {completedAssignments.map((item) => (
                 <AssignmentItem
@@ -106,15 +106,15 @@ export default function Tasks({ navigation }) {
           position: 'absolute',
           bottom: '11%',
           right: 15,
-          backgroundColor: 'blue',
+          backgroundColor: '#008080',
           alignItems: 'center',
           justifyContent: 'center',
           marginTop: 20,
           borderRadius: 100,
           height: 70,
           width: 70,
-          borderWidth: 10,
-          borderColor: 'rgba(0,0,255,0.1)',
+          borderWidth: 8,
+          borderColor: 'rgba(0,128,128,0.3)',
         }}
         onPress={() => navigation.navigate('Add Assignment')}
       >

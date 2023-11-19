@@ -347,7 +347,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
             <Ionicons
               name="add-outline"
               size={25}
-              color="blue"
+              color="#008080"
               style={{ marginRight: 5 }}
             />
             <Text style={styles.addSubjectText}>Add New Subject</Text>
@@ -364,7 +364,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
             <Ionicons
               name="calendar-outline"
               size={20}
-              color="blue"
+              color="#008080"
               style={{ marginRight: 10 }}
             />
             <Text style={styles.inputLabel}>Due Date</Text>
@@ -396,7 +396,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
             <Ionicons
               name="time-outline"
               size={20}
-              color="blue"
+              color="#008080"
               style={{ marginRight: 10 }}
             />
             <Text style={styles.inputLabel}>Due Time</Text>
@@ -423,7 +423,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
             <Ionicons
               name="alarm-outline"
               size={20}
-              color="blue"
+              color="#008080"
               style={{ marginRight: 10 }}
             />
             <Text style={styles.inputLabel}>Set Reminder before Due</Text>
@@ -454,7 +454,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
             <Ionicons
               name="document-attach-outline"
               size={20}
-              color="blue"
+              color="#008080"
               style={{ marginRight: 10 }}
             />
             <Text style={styles.inputLabel}>Submission Format</Text>
@@ -650,7 +650,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   addSubjectText: {
-    color: "blue",
+    color: "#008080",
     fontSize: 16,
     fontWeight: "500",
   },
@@ -692,13 +692,15 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   submitButton: {
-    backgroundColor: "green",
+    backgroundColor: "#008080",
     paddingHorizontal: 16,
     paddingVertical: 5,
     alignItems: "center",
     width: "100%",
-    borderRadius: 10,
+    borderRadius: 12,
     marginTop: 16,
+    borderWidth: 5,
+    borderColor: 'rgba(0,128,128,0.3)'
   },
   deleteButton: {
     backgroundColor: "red",
@@ -751,7 +753,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalButton: {
-    backgroundColor: "blue",
+    backgroundColor: "#008080",
     paddingVertical: 3,
     paddingHorizontal: 10,
     alignItems: "center",
@@ -764,7 +766,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap", // Add this line
   },
   subjectItem: {
-    backgroundColor: "blue",
+    backgroundColor: "#008080",
     marginBottom: 10,
     marginRight: 10,
     borderRadius: 15,
@@ -774,7 +776,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    color: "blue",
+    color: "#008080",
     fontWeight: "500",
   },
 });
