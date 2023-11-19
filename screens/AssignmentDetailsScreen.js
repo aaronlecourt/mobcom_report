@@ -461,7 +461,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
           </View>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={{ color: "#cecece" }}>
-              {selectedSubmissionFormat || "Loading..."}
+              {selectedSubmissionFormat}
             </Text>
             {!isComplete && (
               <Ionicons
@@ -560,10 +560,10 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
                     {subject.name}
                   </Text>
                   <Ionicons
-                    name="close-outline"
+                    name="close-circle"
                     size={20}
                     color="white"
-                    style={{ marginLeft: 10 }}
+                    style={{ marginLeft: 6 }}
                     onPress={() => handleDeleteSubject(subject.id)}
                   />
                 </View>
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginRight: 10,
     borderRadius: 15,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     alignItems: "center",
   },
