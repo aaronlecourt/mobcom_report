@@ -7,28 +7,63 @@ import { firebase } from '../config';
 const AssignmentItem = ({ item, onToggleCompletion }) => {
   const navigation = useNavigation();
   const [localIsComplete, setLocalIsComplete] = useState(item?.isComplete || false);
+  const [timerTimeoutIds, setTimerTimeoutIds] = useState([]);
 
   const toggleCompletion = async () => {
     try {
-      // Update the isComplete property in Firebase
       const appRef = firebase.firestore().collection('assignments');
       const updatedIsComplete = !localIsComplete;
 
-      // Set dateCompleted based on isComplete value
       const updatedData = {
         isComplete: updatedIsComplete,
-        dateCompleted: updatedIsComplete ? new Date().toISOString() : null, // Set to current date and time
+        dateCompleted: updatedIsComplete ? new Date().toISOString() : null,
       };
 
       await appRef.doc(item.id).update(updatedData);
 
       console.log('isComplete updated in Firebase');
 
-      // Update local state after Firebase update
       setLocalIsComplete((prevIsComplete) => !prevIsComplete);
 
       // Call onToggleCompletion with the updated item
       onToggleCompletion(item.id);
+
+      // If setting isComplete to true, start a timer for 10 seconds
+      if (updatedIsComplete) {
+        // Clear any existing timeouts
+        timerTimeoutIds.forEach(clearTimeout);
+        
+        // Set a new timeout and update the state
+        const timeoutId = setTimeout(async () => {
+          // Check if the assignment is still marked as complete
+          const documentSnapshot = await appRef.doc(item.id).get();
+          const { isComplete } = documentSnapshot.data();
+
+          // If still complete, set archived to true and update archivedDate
+          if (isComplete) {
+            const archiveDate = new Date().toISOString();
+            await appRef.doc(item.id).update({ archived: true, archivedDate: new Date().toISOString() });
+            console.log('Assignment archived after 10 seconds');
+          }
+
+          // Remove the completed timeout from the array
+          setTimerTimeoutIds((prevTimeoutIds) =>
+            prevTimeoutIds.filter((id) => id !== timeoutId)
+          );
+        }, 10000);
+
+        // Update the state with the new timeout ID
+        setTimerTimeoutIds((prevTimeoutIds) => [...prevTimeoutIds, timeoutId]);
+      } else {
+        // If setting isComplete to false, clear all timeouts
+        timerTimeoutIds.forEach(clearTimeout);
+
+        // Set archived to false when marking as incomplete
+        await appRef.doc(item.id).update({ archived: false, archivedDate: null });
+
+        // Clear the state
+        setTimerTimeoutIds([]);
+      }
     } catch (error) {
       console.error('Error updating isComplete in Firebase: ', error);
     }
