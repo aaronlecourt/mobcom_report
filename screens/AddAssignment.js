@@ -342,7 +342,7 @@ const AddAssignmentScreen = ({ navigation }) => {
           </View>
           <TextInput
             placeholder={reminder ? `${reminder}` : "in minutes"}
-            placeholderTextColor="#cecece"
+            placeholderTextColor="#5b5b5b"
             style={styles.buttonText2}
             onChangeText={(val) => setReminder(val)}
             value={reminder}
@@ -365,13 +365,13 @@ const AddAssignmentScreen = ({ navigation }) => {
             <Text style={styles.inputLabel}>Submission Format</Text>
           </View>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={{ color: "#cecece" }}>
+            <Text style={styles.buttonText2}>
               {selectedSubmissionFormat || "Select Submission Format"}
             </Text>
             <Ionicons
               name="chevron-down"
               size={15}
-              color="#cecece"
+              color="#5b5b5b"
               style={{ marginLeft: 5 }}
             />
           </View>
@@ -528,6 +528,7 @@ const styles = StyleSheet.create({
     borderColor: "#f7f7f7",
     flexDirection: "row",
     alignItems: "center",
+    color: '#5b5b5b'
   },
   inputTextDesc: {
     borderRadius: 10,
@@ -536,6 +537,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     width: "100%",
     textAlignVertical: 'top',
+    color: '#5b5b5b'
   },
   pickerContainer: {
     marginBottom: 0,
@@ -604,7 +606,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   buttonText2: {
-    color: "#cecece",
+    color: "#5b5b5b",
     paddingVertical: 10,
     fontSize: 15,
     // fontWeight: '500',

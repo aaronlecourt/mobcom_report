@@ -460,14 +460,14 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
             <Text style={styles.inputLabel}>Submission Format</Text>
           </View>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={{ color: "#cecece" }}>
+            <Text style={styles.buttonText2}>
               {selectedSubmissionFormat}
             </Text>
             {!isComplete && (
               <Ionicons
               name="chevron-down"
               size={15}
-              color="#cecece"
+              color="#5b5b5b"
               style={{ marginLeft: 5 }}
             />
             )}
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1.5,
     paddingHorizontal: 5,
     paddingVertical: 14,
-    borderColor: "#f7f7f7",
+    borderColor: "#5b5b5b",
     flexDirection: "row",
     alignItems: "center",
   },
@@ -641,6 +641,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     width: "100%",
     textAlignVertical: 'top',
+    color:'#5b5b5b'
   },
   pickerContainer: {
     marginBottom: 0,
@@ -718,7 +719,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   buttonText2: {
-    color: "#cecece",
+    color: "#5b5b5b",
     paddingVertical: 10,
     fontSize: 15,
     // fontWeight: '500',
