@@ -196,9 +196,16 @@ const AddAssignmentScreen = ({ navigation }) => {
   };
 
   const handleDateConfirm = (dateTime) => {
-    setDueDate(dateTime);
-    hideDatePicker();
-    setButtonText(dateTime.toLocaleString());
+    const currentDate = new Date(); // Get the current date
+  
+    // Check if the selected date is not earlier than today
+    if (dateTime >= currentDate) {
+      setDueDate(dateTime);
+      hideDatePicker();
+      setButtonText(dateTime.toLocaleString());
+    } else {
+      alert("Please select a date that is not earlier than today.");
+    }
   };
 
   const handleTimeConfirm = (dateTime) => {

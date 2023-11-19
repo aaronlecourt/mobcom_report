@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { firebase } from '../config';
 
+const TIMEOUTDURATION = 10000; //10 seconds
+
 const AssignmentItem = ({ item, onToggleCompletion }) => {
   const navigation = useNavigation();
   const [localIsComplete, setLocalIsComplete] = useState(item?.isComplete || false);
@@ -12,7 +14,7 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
   const toggleCompletion = async () => {
     try {
       const appRef = firebase.firestore().collection('assignments');
-      const archivesRef = firebase.firestore().collection('archives'); // Reference to the "archives" collection
+      const archivesRef = firebase.firestore().collection('archives');
       const updatedIsComplete = !localIsComplete;
   
       const updatedData = {
@@ -38,28 +40,33 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
         const timeoutId = setTimeout(async () => {
           // Check if the assignment is still marked as complete
           const documentSnapshot = await appRef.doc(item.id).get();
-          const { isComplete } = documentSnapshot.data();
-  
-          // If still complete, move to archives and update archivedDate
-          if (isComplete) {
-            const archivedDate = new Date().toISOString();
-            await archivesRef.add({
-              ...item,
-              archived: true,
-              archivedDate,
-            });
-  
-            // Remove the assignment from the "assignments" collection
-            await appRef.doc(item.id).delete();
-  
-            console.log('Assignment moved to archives after 10 seconds');
+          if (documentSnapshot.exists) {
+            const { isComplete } = documentSnapshot.data();
+          
+            // If still complete, move to archives and update archivedDate
+            if (isComplete) {
+              const archivedDate = new Date().toISOString();
+              await archivesRef.add({
+                ...item,
+                archived: true,
+                archivedDate,
+              });
+          
+              // Remove the assignment from the "assignments" collection
+              await appRef.doc(item.id).delete();
+          
+              console.log('Assignment moved to archives after 10 seconds');
+            }
+          } else {
+            // Handle the case where the document doesn't exist
+            console.log('Document does not exist');
           }
   
           // Remove the completed timeout from the array
           setTimerTimeoutIds((prevTimeoutIds) =>
             prevTimeoutIds.filter((id) => id !== timeoutId)
           );
-        }, 10000);
+        }, TIMEOUTDURATION);
   
         // Update the state with the new timeout ID
         setTimerTimeoutIds((prevTimeoutIds) => [...prevTimeoutIds, timeoutId]);
