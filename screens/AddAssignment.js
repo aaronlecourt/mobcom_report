@@ -205,6 +205,7 @@ const AddAssignmentScreen = ({ navigation }) => {
       setButtonText(dateTime.toLocaleString());
     } else {
       alert("Please select a date that is not earlier than today.");
+      setDatePickerVisibility(false);
     }
   };
 
