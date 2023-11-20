@@ -116,7 +116,6 @@ const AddAssignmentScreen = ({ navigation }) => {
       console.error('Error adding subject: ', error);
     }
   };
-  
 
   const pushToFirebase = () => {
     // Check if subject is selected
@@ -129,15 +128,21 @@ const AddAssignmentScreen = ({ navigation }) => {
       alert("Please fill in all fields, including the due date and subject");
       return;
     }
-
+  
     // Parse the string dueDate and dueTime to Date objects
     const parsedDueDate = new Date(dueDate);
-
+  
     if (isNaN(parsedDueDate.getTime())) {
       alert("Invalid due date or time format");
       return;
     }
-
+  
+    // Check if reminder is provided and within the max 60 minutes
+    if (reminder && (isNaN(parseInt(reminder)) || parseInt(reminder) > 60)) {
+      alert("Reminder should be a number less than or equal to 60 minutes");
+      return;
+    }
+  
     const timestamp = new Date().toISOString(); // Convert the current date to string
     const container = {
       createdAt: timestamp,
@@ -151,7 +156,7 @@ const AddAssignmentScreen = ({ navigation }) => {
       archivedDate: archivedDate ? archivedDate.toISOString() : null,
       archived,
     };
-
+  
     appRef
       .add(container)
       .then(() => {
@@ -178,6 +183,7 @@ const AddAssignmentScreen = ({ navigation }) => {
         console.log(error);
       });
   };
+  
 
   const showDatePicker = () => { setDatePickerVisibility(true); };
   const hideDatePicker = () => { setDatePickerVisibility(false); };
@@ -366,6 +372,7 @@ const AddAssignmentScreen = ({ navigation }) => {
             onChangeText={(val) => setReminder(val)}
             value={reminder}
             keyboardType="numeric"
+            maxLength={2}
           />
         </View>
 

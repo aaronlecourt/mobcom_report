@@ -175,6 +175,13 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
         return;
       }
   
+      // Check if reminder is greater than 60
+      const parsedReminder = parseInt(reminder, 10) || 0;
+      if (parsedReminder > 60) {
+        alert("Reminder should be at most 60 minutes.");
+        return;
+      }
+  
       // Create an object with the updated fields
       const updatedFields = {
         description,
@@ -218,13 +225,14 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
       hideTimePicker();
       setButtonText("Show Date and Time Picker");
       Keyboard.dismiss();
-
+  
       alert("Assignment updated successfully!");
       navigation.goBack();
     } catch (error) {
       console.error("Error updating assignment: ", error);
     }
   };
+  
   
   const removeFromFirebase = async () => {
     try {
@@ -440,11 +448,12 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
           {!isComplete && (
             <TextInput
             placeholder={reminder ? `${reminder}` : "in minutes"}
-            placeholderTextColor="#cecece"
+            placeholderTextColor="#5b5b5b"
             style={styles.buttonText2}
             onChangeText={(val) => setReminder(val)}
             value={reminder}
             keyboardType="numeric"
+            maxLength={2}
           />
           )}
           {isComplete && (
