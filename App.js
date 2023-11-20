@@ -10,6 +10,7 @@ import ArchiveScreen from './screens/Archives';
 import AssignmentDetailsScreen from './screens/AssignmentDetailsScreen';
 
 import { Ionicons } from '@expo/vector-icons';
+import AddTaskScreen from './screens/AddTaskScreen';
 
 // Initialize Bottom Tab Navigator and Native Stack Navigator
 const Tab = createBottomTabNavigator();
@@ -39,6 +40,11 @@ const App = () => {
         <Stack.Screen
           name="AssignmentDetails"
           component={AssignmentDetailsScreen}
+        />
+
+          <Stack.Screen
+          name="AddTasks"
+          component={AddTaskScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

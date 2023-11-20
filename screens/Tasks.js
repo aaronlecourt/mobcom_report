@@ -12,6 +12,8 @@ const timeOutDuration = 10000; //10seconds for demo
 
 // Functional component for displaying tasks and assignments
 function Tasks({ navigation, route }) {
+  
+
   // State variables to manage assignments, archive, timeouts, and background color
   const [assignments, setAssignments] = useState([
     {
@@ -56,6 +58,7 @@ function Tasks({ navigation, route }) {
       archiveDate: null,
       archived: false,
     },
+    
   ]); // Initial assignments data
   const [archive, setArchive] = useState([]); // Archived assignments
   const [timeoutIds, setTimeoutIds] = useState({}); // Timeout IDs for managing timeouts
@@ -68,8 +71,10 @@ function Tasks({ navigation, route }) {
 
   // Effect to update navigation params when the 'archive' state changes
   useEffect(() => {
-    navigation.setParams({ archive });
-  }, [archive]);
+    if (route.params && route.params.shouldRefresh) {
+      fetchFromDB();
+    }
+  }, [route.params]);
 
   // Function to toggle completion status of an assignment
   const toggleCompletion = (itemId) => {
@@ -166,7 +171,7 @@ function Tasks({ navigation, route }) {
       </ScrollView>
 
       {/* Button for adding a new task */}
-      <TouchableOpacity
+      <TouchableOpacity 
         style={{
           position: 'absolute',
           bottom: '11%',
@@ -181,14 +186,15 @@ function Tasks({ navigation, route }) {
           borderWidth: 10,
           borderColor: 'rgba(0,0,255,0.1)',
         }}
-        onPress={() => {
-          // navigation.navigate('AddTask');
-        }}
+         onPress={() => {
+          navigation.navigate('AddTasks');
+          }}
       >
         <Text style={{ color: 'white', textAlign: 'center' }}>
           <Ionicons name="ios-add" size={25} color="white" />
         </Text>
       </TouchableOpacity>
+
     </View>
   );
 }
