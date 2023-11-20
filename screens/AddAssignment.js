@@ -367,9 +367,10 @@ const AddAssignmentScreen = ({ navigation }) => {
             placeholder={reminder ? `${reminder}` : "in minutes"}
             placeholderTextColor="#5b5b5b"
             style={styles.buttonText2}
-            onChangeText={(val) => setReminder(val)}
+            onChangeText={(val) => setReminder(Math.min(parseInt(val, 10) || 0, 60).toString())}
             value={reminder}
             keyboardType="numeric"
+            maxLength={2}
           />
         </View>
 
