@@ -123,7 +123,6 @@ const AddAssignmentScreen = ({ navigation }) => {
     if (
       !description ||
       !dueDate ||
-      !dueTime ||
       !selectedSubject ||
       !submission
     ) {
@@ -133,9 +132,8 @@ const AddAssignmentScreen = ({ navigation }) => {
 
     // Parse the string dueDate and dueTime to Date objects
     const parsedDueDate = new Date(dueDate);
-    const parsedDueTime = new Date(dueTime);
 
-    if (isNaN(parsedDueDate.getTime()) || isNaN(parsedDueTime.getTime())) {
+    if (isNaN(parsedDueDate.getTime())) {
       alert("Invalid due date or time format");
       return;
     }
@@ -145,7 +143,6 @@ const AddAssignmentScreen = ({ navigation }) => {
       createdAt: timestamp,
       description,
       dueDate: parsedDueDate.toISOString(), // Save as a string
-      dueTime: parsedDueTime.toISOString(), // Save as a string
       reminder,
       subject: selectedSubject,
       submission,
@@ -164,7 +161,6 @@ const AddAssignmentScreen = ({ navigation }) => {
         alert("Successfully added!");
         setDescription("");
         setDueDate("");
-        setDueTime("");
         setReminder("");
         setSelectedSubject("");
         setSubmission("");
@@ -197,9 +193,10 @@ const AddAssignmentScreen = ({ navigation }) => {
 
   const handleDateConfirm = (dateTime) => {
     const currentDate = new Date(); // Get the current date
+    const startOfDayCurrent = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
   
     // Check if the selected date is not earlier than today
-    if (dateTime >= currentDate) {
+    if (dateTime >= startOfDayCurrent) {
       setDueDate(dateTime);
       hideDatePicker();
       setButtonText(dateTime.toLocaleString());
@@ -208,8 +205,22 @@ const AddAssignmentScreen = ({ navigation }) => {
       setDatePickerVisibility(false);
     }
   };
+  
 
   const handleTimeConfirm = (dateTime) => {
+    // Get the existing dueDate
+    const existingDueDate = dueDate || new Date();
+  
+    // Create a new Date object with the existing dueDate and the selected time
+    const updatedDueDate = new Date(
+      existingDueDate.getFullYear(),
+      existingDueDate.getMonth(),
+      existingDueDate.getDate(),
+      dateTime.getHours(),
+      dateTime.getMinutes()
+    );
+  
+    setDueDate(updatedDueDate);
     setDueTime(dateTime);
     hideTimePicker();
   };

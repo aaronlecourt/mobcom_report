@@ -22,7 +22,6 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
   const {
     description: initialDescription,
     dueDate: initialDueDate,
-    dueTime: initialDueTime,
     reminder: initialReminder,
     subject: initialSubject,
     submission: initialSubmission,
@@ -34,13 +33,10 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
   
   // Set initial values from route params
   const [description, setDescription] = useState(initialDescription || "");
-  const [dueDate, setDueDate] = useState(
-    initialDueDate ? new Date(initialDueDate) : null
-  );
   
-  // Extract the time from dueDate or set it to null
-  const initialTimeFromDate = initialDueDate ? new Date(initialDueDate) : null;
-  const [dueTime, setDueTime] = useState(initialDueTime ? new Date(initialDueTime) : initialTimeFromDate);
+  const [dueDate, setDueDate] = useState(initialDueDate ? new Date(initialDueDate) : new Date());
+  const [dueTime, setDueTime] = useState(initialDueDate ? new Date(initialDueDate) : null);
+
   
   const [reminder, setReminder] = useState(initialReminder || "");
   const [selectedSubject, setSelectedSubject] = useState(initialSubject || "");
@@ -166,16 +162,15 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
   const pushToFirebase = async () => {
     try {
       // Check if subject is selected
-      if (!description || !dueDate || !dueTime || !selectedSubject || !submission) {
+      if (!description || !dueDate || !selectedSubject || !submission) {
         alert("Please fill in all fields, including the due date and subject");
         return;
       }
   
       // Parse the string dueDate and dueTime to Date objects
       const parsedDueDate = new Date(dueDate);
-      const parsedDueTime = new Date(dueTime);
   
-      if (isNaN(parsedDueDate.getTime()) || isNaN(parsedDueTime.getTime())) {
+      if (isNaN(parsedDueDate.getTime())) {
         alert("Invalid due date or time format");
         return;
       }
@@ -184,7 +179,6 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
       const updatedFields = {
         description,
         dueDate: parsedDueDate.toISOString(),
-        dueTime: parsedDueTime.toISOString(),
         reminder,
         subject: selectedSubject,
         submission,
@@ -203,7 +197,6 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
       // Set other state variables with the new values
       setDescription(updatedFields.description);
       setDueDate(parsedDueDate);
-      setDueTime(parsedDueTime);
       setReminder(updatedFields.reminder);
       setSelectedSubject(updatedFields.subject);
       setSubmission(updatedFields.submission);
@@ -265,7 +258,8 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
 
   const showDatePicker = () => { setDatePickerVisibility(true); };
   const hideDatePicker = () => { setDatePickerVisibility(false); };
-  const showTimePicker = () => { setTimePickerVisibility(true); };
+  const showTimePicker = () => { console.log("Before showing time picker, dueTime:", dueTime);
+  setTimePickerVisibility(true); };
   const hideTimePicker = () => { setTimePickerVisibility(false); };
 
   // Function to handle the selection of submission format
@@ -277,9 +271,10 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
 
   const handleDateConfirm = (dateTime) => {
     const currentDate = new Date(); // Get the current date
+    const startOfDayCurrent = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
   
     // Check if the selected date is not earlier than today
-    if (dateTime >= currentDate) {
+    if (dateTime >= startOfDayCurrent) {
       setDueDate(dateTime);
       hideDatePicker();
       setButtonText(dateTime.toLocaleString());
@@ -288,8 +283,14 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
       setDatePickerVisibility(false);
     }
   };
+  
 
   const handleTimeConfirm = (dateTime) => {
+    const updatedDueDate = dueDate ? new Date(dueDate) : new Date(); // Use existing dueDate or default to today
+    updatedDueDate.setHours(dateTime.getHours());
+    updatedDueDate.setMinutes(dateTime.getMinutes());
+  
+    setDueDate(updatedDueDate);
     setDueTime(dateTime);
     hideTimePicker();
   };
@@ -378,7 +379,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
             <Text style={styles.inputLabel}>Due Date</Text>
           </View>
           <Text style={styles.buttonText2}>
-            {dueDate
+          {dueDate
               ? `${dueDate.toLocaleDateString("en-US", {
                   month: "long",
                   day: "numeric",
