@@ -304,7 +304,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
     } else {
       alert("Please select a time that is not earlier than the current time.");
       setTimePickerVisibility(false);
-      return; // Add this line to prevent further execution
+      return;
     }
   };
   
