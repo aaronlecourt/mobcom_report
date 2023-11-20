@@ -456,9 +456,10 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
             placeholder={reminder ? `${reminder}` : "in minutes"}
             placeholderTextColor="#cecece"
             style={styles.buttonText2}
-            onChangeText={(val) => setReminder(val)}
+            onChangeText={(val) => setReminder(Math.min(parseInt(val, 10) || 0, 60).toString())}
             value={reminder}
             keyboardType="numeric"
+            maxLength={2}
           />
           )}
           {isComplete && (
