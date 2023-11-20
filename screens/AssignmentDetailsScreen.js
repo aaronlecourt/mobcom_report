@@ -284,16 +284,30 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
     }
   };
   
-
   const handleTimeConfirm = (dateTime) => {
-    const updatedDueDate = dueDate ? new Date(dueDate) : new Date(); // Use existing dueDate or default to today
-    updatedDueDate.setHours(dateTime.getHours());
-    updatedDueDate.setMinutes(dateTime.getMinutes());
+    // Get the current time
+    const currentTime = new Date();
   
-    setDueDate(updatedDueDate);
-    setDueTime(dateTime);
-    hideTimePicker();
+    // Create a new Date object with the current date and the selected time
+    const selectedTime = new Date(
+      currentTime.getFullYear(),
+      currentTime.getMonth(),
+      currentTime.getDate(),
+      dateTime.getHours(),
+      dateTime.getMinutes()
+    );
+  
+    // Check if the selected time is not earlier than the current time
+    if (selectedTime >= currentTime) {
+      setDueTime(dateTime);
+      hideTimePicker();
+    } else {
+      alert("Please select a time that is not earlier than the current time.");
+      setTimePickerVisibility(false);
+      return; // Add this line to prevent further execution
+    }
   };
+  
 
   const handleDeleteSubject = async (subjectId) => {
     try {

@@ -205,26 +205,30 @@ const AddAssignmentScreen = ({ navigation }) => {
       setDatePickerVisibility(false);
     }
   };
-  
 
   const handleTimeConfirm = (dateTime) => {
-    // Get the existing dueDate
-    const existingDueDate = dueDate || new Date();
+    // Get the current time
+    const currentTime = new Date();
   
-    // Create a new Date object with the existing dueDate and the selected time
-    const updatedDueDate = new Date(
-      existingDueDate.getFullYear(),
-      existingDueDate.getMonth(),
-      existingDueDate.getDate(),
+    // Create a new Date object with the current date and the selected time
+    const selectedTime = new Date(
+      currentTime.getFullYear(),
+      currentTime.getMonth(),
+      currentTime.getDate(),
       dateTime.getHours(),
       dateTime.getMinutes()
     );
   
-    setDueDate(updatedDueDate);
-    setDueTime(dateTime);
-    hideTimePicker();
+    // Check if the selected time is not earlier than the current time
+    if (selectedTime >= currentTime) {
+      setDueTime(dateTime);
+      hideTimePicker();
+    } else {
+      alert("Please select a time that is not earlier than the current time.");
+      setTimePickerVisibility(false);
+    }
   };
-
+  
   const handleDeleteSubject = async (subjectId) => {
     try {
       // Remove the subject from the database
