@@ -8,54 +8,29 @@ import {
   Keyboard,
   StatusBar,
   Animated,
-  Alert
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { firebase } from "../config";
 import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
 
-const AssignmentDetailsScreen = ({ navigation, route }) => {
+const AddAssignmentScreen = ({ navigation }) => {
   const appRef = firebase.firestore().collection("assignments");
   const subjectsRef = firebase.firestore().collection("subjects");
 
-  const {
-    description: initialDescription,
-    dueDate: initialDueDate,
-    reminder: initialReminder,
-    subject: initialSubject,
-    submission: initialSubmission,
-    isComplete: initialIsComplete,
-    dateCompleted: initialDateCompleted,
-    archivedDate: initialArchivedDate,
-    archived: initialArchived,
-  } = route.params?.assignmentDetails || {};
-  
-  // Set initial values from route params
-  const [description, setDescription] = useState(initialDescription || "");
-  
-  const [dueDate, setDueDate] = useState(initialDueDate ? new Date(initialDueDate) : new Date());
-  const [dueTime, setDueTime] = useState(initialDueDate ? new Date(initialDueDate) : null);
-
-  
-  const [reminder, setReminder] = useState(initialReminder || "");
-  const [selectedSubject, setSelectedSubject] = useState(initialSubject || "");
-  const [submission, setSubmission] = useState(initialSubmission || "");
-  const [isComplete, setIsComplete] = useState(initialIsComplete || false);
-  const [dateCompleted, setDateCompleted] = useState(
-    initialDateCompleted ? new Date(initialDateCompleted) : null
-  );
-  const [archivedDate, setArchivedDate] = useState(
-    initialArchivedDate ? new Date(initialArchivedDate) : null
-  );
-  const [archived, setArchived] = useState(initialArchived || false);
-  
-
-
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
-
+  const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("");
   const [buttonText, setButtonText] = useState("Show Date and Time Picker");
+  const [description, setDescription] = useState("");
+  const [reminder, setReminder] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [submission, setSubmission] = useState("");
+  const [isComplete, setIsComplete] = useState(false);
+  const [dateCompleted, setDateCompleted] = useState(null);
+  const [archivedDate, setArchivedDate] = useState(null);
+  const [archived, setArchived] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const [isModalVisible, setModalVisible] = useState(false);
   const [newSubject, setNewSubject] = useState("");
@@ -70,7 +45,6 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
     { id: "5", name: "Online" },
   ]);
 
-  // console.log(route)
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
@@ -80,30 +54,14 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
           ...doc.data(),
         }));
         setSubjects(subjectsData);
-  
-        // If assignment details are provided, set the state based on the details
-        if (route.params?.assignmentDetails) {
-          const {
-            submission: initialSubmission,
-          } = route.params.assignmentDetails;
-  
-          // Find the submission format based on the stored ID
-          const selectedFormat = submissionFormats.find(
-            (format) => format.id === initialSubmission
-          );
-  
-          if (selectedFormat) {
-            setSelectedSubmissionFormat(selectedFormat.name);
-          }
-        }
       } catch (error) {
         console.error("Error fetching subjects: ", error);
       }
     };
-  
+
     fetchSubjects();
-  }, [route.params?.assignmentDetails, submissionFormats]);
-  
+  }, []);
+
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
     updateStatusBarStyle(!isModalVisible);
@@ -158,116 +116,78 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
       console.error('Error adding subject: ', error);
     }
   };
-  
-  const pushToFirebase = async () => {
-    try {
-      // Check if subject is selected
-      if (!description || !dueDate || !selectedSubject || !submission) {
-        alert("Please fill in all fields, including the due date and subject");
-        return;
-      }
-  
-      // Parse the string dueDate and dueTime to Date objects
-      const parsedDueDate = new Date(dueDate);
-  
-      if (isNaN(parsedDueDate.getTime())) {
-        alert("Invalid due date or time format");
-        return;
-      }
-  
-      // Check if reminder is greater than 60
-      const parsedReminder = parseInt(reminder, 10) || 0;
-      if (parsedReminder > 60) {
-        alert("Reminder should be at most 60 minutes.");
-        return;
-      }
-  
-      // Create an object with the updated fields
-      const updatedFields = {
-        description,
-        dueDate: parsedDueDate.toISOString(),
-        reminder,
-        subject: selectedSubject,
-        submission,
-        isComplete,
-        dateCompleted: dateCompleted ? dateCompleted.toISOString() : null,
-        archivedDate: archivedDate ? archivedDate.toISOString() : null,
-        archived,
-      };
-  
-      // Update the assignment in Firebase
-      await appRef.doc(route.params.assignmentDetails.id).update(updatedFields);
-  
-      // Update the route params directly
-      route.params.assignmentDetails = { ...route.params.assignmentDetails, ...updatedFields };
-  
-      // Set other state variables with the new values
-      setDescription(updatedFields.description);
-      setDueDate(parsedDueDate);
-      setReminder(updatedFields.reminder);
-      setSelectedSubject(updatedFields.subject);
-      setSubmission(updatedFields.submission);
-      setIsComplete(updatedFields.isComplete);
-      setDateCompleted(
-        updatedFields.dateCompleted
-          ? new Date(updatedFields.dateCompleted)
-          : null
-      );
-      setArchivedDate(
-        updatedFields.archivedDate
-          ? new Date(updatedFields.archivedDate)
-          : null
-      );
-      setArchived(updatedFields.archived);
-  
-      // Hide date and time pickers
-      hideDatePicker();
-      hideTimePicker();
-      setButtonText("Show Date and Time Picker");
-      Keyboard.dismiss();
-  
-      alert("Assignment updated successfully!");
-      navigation.goBack();
-    } catch (error) {
-      console.error("Error updating assignment: ", error);
+
+  const pushToFirebase = () => {
+    // Check if subject is selected
+    if (
+      !description ||
+      !dueDate ||
+      !selectedSubject ||
+      !submission
+    ) {
+      alert("Please fill in all fields, including the due date and subject");
+      return;
     }
+  
+    // Parse the string dueDate and dueTime to Date objects
+    const parsedDueDate = new Date(dueDate);
+  
+    if (isNaN(parsedDueDate.getTime())) {
+      alert("Invalid due date or time format");
+      return;
+    }
+  
+    // Check if reminder is provided and within the max 60 minutes
+    if (reminder && (isNaN(parseInt(reminder)) || parseInt(reminder) > 60)) {
+      alert("Reminder should be a number less than or equal to 60 minutes");
+      return;
+    }
+  
+    const timestamp = new Date().toISOString(); // Convert the current date to string
+    const container = {
+      createdAt: timestamp,
+      description,
+      dueDate: parsedDueDate.toISOString(), // Save as a string
+      reminder,
+      subject: selectedSubject,
+      submission,
+      isComplete,
+      dateCompleted: dateCompleted ? dateCompleted.toISOString() : null,
+      archivedDate: archivedDate ? archivedDate.toISOString() : null,
+      archived,
+    };
+  
+    appRef
+      .add(container)
+      .then(() => {
+        setSelectedSubject("");
+        setSelectedSubmissionFormat("");
+        setSubmission("");
+        alert("Successfully added!");
+        setDescription("");
+        setDueDate("");
+        setReminder("");
+        setSelectedSubject("");
+        setSubmission("");
+        setIsComplete(false);
+        setDateCompleted(null);
+        setArchivedDate(null);
+        setArchived(false);
+        hideDatePicker();
+        hideTimePicker();
+        setButtonText("Show Date and Time Picker");
+        Keyboard.dismiss();
+        navigation.goBack();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
   
-  
-  const removeFromFirebase = async () => {
-    try {
-      // Show a confirmation alert
-      Alert.alert(
-        "Delete Assignment",
-        "Are you sure you want to delete this assignment?",
-        [
-          {
-            text: "Cancel",
-            style: "cancel",
-          },
-          {
-            text: "Delete",
-            onPress: async () => {
-              // Delete the assignment from Firebase
-              await appRef.doc(route.params.assignmentDetails.id).delete();
-              navigation.goBack()
-              // Navigate back to the previous screen or perform any other desired action
-              // You might use navigation.goBack() or navigation.navigate('AssignmentsList') here
-  
-              alert("Assignment deleted successfully!");
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      console.error("Error deleting assignment: ", error);
-    }
-  };
 
   const showDatePicker = () => { setDatePickerVisibility(true); };
   const hideDatePicker = () => { setDatePickerVisibility(false); };
-  const showTimePicker = () => { console.log("Before showing time picker, dueTime:", dueTime);
-  setTimePickerVisibility(true); };
+  const showTimePicker = () => { setTimePickerVisibility(true); };
   const hideTimePicker = () => { setTimePickerVisibility(false); };
 
   // Function to handle the selection of submission format
@@ -294,9 +214,17 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
   
 
   const handleTimeConfirm = (dateTime) => {
-    const updatedDueDate = dueDate ? new Date(dueDate) : new Date(); // Use existing dueDate or default to today
-    updatedDueDate.setHours(dateTime.getHours());
-    updatedDueDate.setMinutes(dateTime.getMinutes());
+    // Get the existing dueDate
+    const existingDueDate = dueDate || new Date();
+  
+    // Create a new Date object with the existing dueDate and the selected time
+    const updatedDueDate = new Date(
+      existingDueDate.getFullYear(),
+      existingDueDate.getMonth(),
+      existingDueDate.getDate(),
+      dateTime.getHours(),
+      dateTime.getMinutes()
+    );
   
     setDueDate(updatedDueDate);
     setDueTime(dateTime);
@@ -323,7 +251,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
       <View style={{ width: "100%", paddingTop: 16 }}>
         <View style={styles.pickerContainer}>
           <TouchableOpacity
-            onPress={isComplete ? () => {} : toggleAddSubjectModal}
+            onPress={toggleAddSubjectModal}
             style={styles.customPicker}
           >
             <Text style={{ color: "#5b5b5b", fontWeight: 'bold' }}>
@@ -339,42 +267,34 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
         </View>
 
         <Text style={styles.inputLabel}>Description</Text>
-        {!isComplete && (
-          <TextInput
-            placeholder="Enter Assignment here..."
-            placeholderTextColor="#cecece"
-            style={styles.inputTextDesc}
-            onChangeText={(val) => setDescription(val)}
-            value={description}
-            multiline={true}
-            numberOfLines={4}
-            maxLength={50}
-          />
-        )}
-        {isComplete && (
-          <Text style={[styles.inputTextDesc, { paddingBottom: 50}]}>{description}</Text>
-        )}
+        <TextInput
+          placeholder="Enter Assignment here..."
+          placeholderTextColor="#cecece"
+          style={styles.inputTextDesc}
+          onChangeText={(val) => setDescription(val)}
+          value={description}
+          multiline={true}  // Enable multiline
+          numberOfLines={4}
+          maxLength={80}
+        />
 
-        {!isComplete && (
-          <>
-          <TouchableOpacity
-            onPress={toggleModal}
-            style={styles.addSubjectContainer1}
-          >
-            <Ionicons
-              name="add-outline"
-              size={25}
-              color="#008080"
-              style={{ marginRight: 5 }}
-            />
-            <Text style={styles.addSubjectText}>Add New Subject</Text>
-          </TouchableOpacity>
-          </>
-        )}
+        {/* Add New Subject */}
+        <TouchableOpacity
+          onPress={toggleModal}
+          style={styles.addSubjectContainer1}
+        >
+          <Ionicons
+            name="add-outline"
+            size={25}
+            color="#008080"
+            style={{ marginRight: 5 }}
+          />
+          <Text style={styles.addSubjectText}>Add New Subject</Text>
+        </TouchableOpacity>
 
         {/* Show Date Picker */}
         <TouchableOpacity
-          onPress={isComplete ? () => {} : showDatePicker}
+          onPress={showDatePicker}
           style={styles.addSubjectContainer}
         >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -387,7 +307,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
             <Text style={styles.inputLabel}>Due Date</Text>
           </View>
           <Text style={styles.buttonText2}>
-          {dueDate
+            {dueDate
               ? `${dueDate.toLocaleDateString("en-US", {
                   month: "long",
                   day: "numeric",
@@ -406,7 +326,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
 
         {/* Show Time Picker */}
         <TouchableOpacity
-          onPress={isComplete ? () => {} : showTimePicker}
+          onPress={showTimePicker}
           style={styles.addSubjectContainer}
         >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -445,8 +365,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
             />
             <Text style={styles.inputLabel}>Set Reminder before Due</Text>
           </View>
-          {!isComplete && (
-            <TextInput
+          <TextInput
             placeholder={reminder ? `${reminder}` : "in minutes"}
             placeholderTextColor="#5b5b5b"
             style={styles.buttonText2}
@@ -455,17 +374,11 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
             keyboardType="numeric"
             maxLength={2}
           />
-          )}
-          {isComplete && (
-            <Text style={styles.buttonText2}>
-              {reminder.length > 0 ? reminder : "none"}
-            </Text>
-          )}
         </View>
 
         {/* Submission Format Container */}
         <TouchableOpacity
-          onPress={isComplete ? () => {} : toggleSubFormatModal}
+          onPress={toggleSubFormatModal}
           style={styles.addSubjectContainer2}
         >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -479,30 +392,20 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
           </View>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={styles.buttonText2}>
-              {selectedSubmissionFormat}
+              {selectedSubmissionFormat || "Select Submission Format"}
             </Text>
-            {!isComplete && (
-              <Ionicons
+            <Ionicons
               name="chevron-down"
               size={15}
               color="#5b5b5b"
               style={{ marginLeft: 5 }}
             />
-            )}
           </View>
         </TouchableOpacity>
 
-        {!isComplete && (
-          <>
-          <TouchableOpacity style={styles.submitButton} onPress={pushToFirebase}>
-            <Text style={styles.buttonText}>Update Assignment</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.deleteButton} onPress={removeFromFirebase}>
-            <Text style={styles.buttonText}>Delete Assignment</Text>
-          </TouchableOpacity>
-          </>
-        )}
+        <TouchableOpacity style={styles.submitButton} onPress={pushToFirebase}>
+          <Text style={styles.buttonText}>Add Assignment</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Modal for adding a new subject */}
@@ -578,10 +481,10 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
                     {subject.name}
                   </Text>
                   <Ionicons
-                    name="close-circle"
+                    name="close-outline"
                     size={20}
                     color="white"
-                    style={{ marginLeft: 6 }}
+                    style={{ marginLeft: 10 }}
                     onPress={() => handleDeleteSubject(subject.id)}
                   />
                 </View>
@@ -648,9 +551,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1.5,
     paddingHorizontal: 5,
     paddingVertical: 14,
-    borderColor: "#5b5b5b",
+    borderColor: "#f7f7f7",
     flexDirection: "row",
     alignItems: "center",
+    color: '#5b5b5b'
   },
   inputTextDesc: {
     borderRadius: 10,
@@ -659,7 +563,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     width: "100%",
     textAlignVertical: 'top',
-    color:'#5b5b5b'
+    color: '#5b5b5b'
   },
   pickerContainer: {
     marginBottom: 0,
@@ -716,19 +620,10 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     alignItems: "center",
     width: "100%",
-    borderRadius: 12,
+    borderRadius: 10,
     marginTop: 16,
     borderWidth: 5,
     borderColor: 'rgba(0,128,128,0.3)'
-  },
-  deleteButton: {
-    backgroundColor: "red",
-    paddingHorizontal: 16,
-    paddingVertical: 5,
-    alignItems: "center",
-    width: "100%",
-    borderRadius: 10,
-    marginTop: 10,
   },
   buttonText: {
     color: "white",
@@ -789,7 +684,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginRight: 10,
     borderRadius: 15,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
     alignItems: "center",
   },
@@ -800,4 +695,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AssignmentDetailsScreen;
+export default AddAssignmentScreen;

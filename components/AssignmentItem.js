@@ -1,29 +1,114 @@
-// Import necessary React and React Native components
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { firebase } from '../config';
 
-// Functional component for displaying individual assignments
+const TIMEOUTDURATION = 10000; //10 seconds
+
 const AssignmentItem = ({ item, onToggleCompletion }) => {
-  // Local state to track completion status
-  const [isComplete, setIsComplete] = useState(item.isComplete);
+  const navigation = useNavigation();
+  const [localIsComplete, setLocalIsComplete] = useState(item?.isComplete || false);
+  const [timerTimeoutIds, setTimerTimeoutIds] = useState([]);
 
-  useEffect(() => {
-    // Update the local completion status when the item prop changes
-    setIsComplete(item.isComplete);
-  }, [item]);
-
-  // Function to toggle completion status
-  const toggleCompletion = () => {
-    // Toggle the completion status locally
-    setIsComplete(!isComplete);
-    // Call the callback to update the parent component's state
-    onToggleCompletion(item.id);
+  const toggleCompletion = async () => {
+    try {
+      const appRef = firebase.firestore().collection('assignments');
+      const archivesRef = firebase.firestore().collection('archives');
+      const updatedIsComplete = !localIsComplete;
+  
+      const updatedData = {
+        isComplete: updatedIsComplete,
+        dateCompleted: updatedIsComplete ? new Date().toISOString() : null,
+      };
+  
+      await appRef.doc(item.id).update(updatedData);
+  
+      // console.log('isComplete updated in Firebase');
+  
+      setLocalIsComplete((prevIsComplete) => !prevIsComplete);
+  
+      // Call onToggleCompletion with the updated item
+      onToggleCompletion(item.id);
+  
+      // If setting isComplete to true, start a timer for 10 seconds
+      if (updatedIsComplete) {
+        // Clear any existing timeouts
+        timerTimeoutIds.forEach(clearTimeout);
+  
+        // Set a new timeout and update the state
+        const timeoutId = setTimeout(async () => {
+          // Check if the assignment is still marked as complete
+          const documentSnapshot = await appRef.doc(item.id).get();
+          if (documentSnapshot.exists) {
+            const { isComplete } = documentSnapshot.data();
+          
+            // If still complete, move to archives and update archivedDate
+            if (isComplete) {
+              const archivedDate = new Date().toISOString();
+              await archivesRef.add({
+                ...item,
+                archived: true,
+                archivedDate,
+              });
+          
+              // Remove the assignment from the "assignments" collection
+              await appRef.doc(item.id).delete();
+          
+              // console.log('Assignment moved to archives after 10 seconds');
+            }
+          } else {
+            // Handle the case where the document doesn't exist
+            console.log('Document does not exist');
+          }
+  
+          // Remove the completed timeout from the array
+          setTimerTimeoutIds((prevTimeoutIds) =>
+            prevTimeoutIds.filter((id) => id !== timeoutId)
+          );
+        }, TIMEOUTDURATION);
+  
+        // Update the state with the new timeout ID
+        setTimerTimeoutIds((prevTimeoutIds) => [...prevTimeoutIds, timeoutId]);
+      } else {
+        // If setting isComplete to false, clear all timeouts
+        timerTimeoutIds.forEach(clearTimeout);
+  
+        // Set archived to false when marking as incomplete
+        await appRef.doc(item.id).update({ archived: false, archivedDate: null });
+  
+        // Clear the state
+        setTimerTimeoutIds([]);
+      }
+    } catch (error) {
+      console.error('Error updating isComplete in Firebase: ', error);
+    }
   };
+  
+
+  // Format due date and time
+  const dueDateTime = new Date(item?.dueDate || 0); // Use a default value if item or dueDate is undefined
+  const formattedDueDate = dueDateTime.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const formattedTime = dueDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Convert dateCompleted to a serializable format
+  const serializableDateCompleted = item?.dateCompleted ? item.dateCompleted.toISOString() : null;
+
+  const reminderText =
+    item?.reminder && item.reminder > 1
+      ? `${item.reminder} minutes before due`
+      : `${item.reminder} minute before due`;
 
   return (
-    // Main container view for an assignment item
-    <View
+    <TouchableOpacity
+      onPress={() =>
+        navigation.navigate(' ', { assignmentDetails: { ...item, dateCompleted: serializableDateCompleted } })
+      }
       style={{
         marginBottom: 15,
         flexDirection: 'row',
@@ -31,12 +116,11 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
         backgroundColor: '#f7f7f7',
         display: 'flex',
         justifyContent: 'center',
-        padding: 5,
-        borderRadius: 5,
-        alignItems: 'center',
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        borderRadius: 10,
       }}
     >
-      {/* Toggleable circle button */}
       <TouchableOpacity
         style={{
           marginRight: 10,
@@ -46,49 +130,46 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
         }}
         onPress={toggleCompletion}
       >
-        {/* Ionicons for displaying completion status */}
         <Ionicons
-          name={isComplete ? 'ios-checkmark-circle' : 'arrow-forward-circle-outline'}
+          name={localIsComplete ? 'ios-checkmark-circle' : 'arrow-forward-circle-outline'}
           size={28}
-          color={isComplete ? '#cecece' : '#5b5b5b'}
+          color={localIsComplete ? '#cecece' : '#5b5b5b'}
         />
       </TouchableOpacity>
 
-      {/* Assignment details */}
       <View style={{ flex: 1 }}>
-        {/* Row with description and subject, justified space-between */}
         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
-          {/* Text for displaying description */}
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: isComplete ? '#cecece' : '#5b5b5b' }}>
-            {item.description}
-          </Text>
-          {/* Text for displaying subject */}
-          <Text style={{ fontWeight: 'bold', fontSize: 15, color: isComplete ? '#cecece' : '#5b5b5b' }}>
-            {item.subject}
+        <Text style={{ fontSize: 18, fontWeight: 'bold', color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
+          {item?.description?.length > 15 ? `${item.description.substring(0, 15)}...` : item?.description || 'No Description'}
+        </Text>
+
+          <Text style={{ fontWeight: 'bold', fontSize: 15, color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
+            {item?.subject || 'No Subject'}
           </Text>
         </View>
 
-        {/* Text for displaying due date and time */}
-        <Text style={{ color: isComplete ? '#cecece' : '#5b5b5b' }}>
-          {item.dueDate} at {item.time}
+        <Text style={{ color: localIsComplete ? '#cecece' : '#5b5b5b' }}>
+          {formattedDueDate} at {formattedTime}
         </Text>
 
-        {/* Check if there's a reminder */}
-        {item.reminder && (
-          // View for displaying reminder icon and text
+        {item?.reminder && (
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            {/* Ionicons for displaying reminder icon */}
-            <Ionicons name="notifications-circle-sharp" size={15} color={isComplete ? '#cecece' : 'rgba(0,0,255,1)'} />
-            {/* Text for displaying reminder minutes before due */}
-            <Text style={{ color: isComplete ? '#cecece' : 'rgba(0,0,255,1)', fontStyle: 'italic' }}>
-              {item.reminder} minutes before due
+            <Ionicons name="notifications-circle-sharp" size={15} color={localIsComplete ? '#cecece' : '#008080'} />
+            <Text
+              style={{
+                color: localIsComplete ? '#cecece' : '#008080',
+                fontStyle: 'italic',
+                fontWeight: '600',
+                marginLeft: 0,
+              }}
+            >
+              {reminderText}
             </Text>
           </View>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
-// Export the AssignmentItem component as the default export
 export default AssignmentItem;

@@ -1,169 +1,104 @@
-// Import necessary React and React Native components and libraries
-import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Import Ionicons for icon usage
-import AssignmentItem from '../components/AssignmentItem'; // Import custom AssignmentItem component
-import { useNavigation } from '@react-navigation/native';
+// Import necessary React and React Native components
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native'; // Use ScrollView instead of FlatList
+import { firebase } from '../config';
+import AssignmentItem from '../components/AssignmentItem'; // Import the AssignmentItem component
+import { Ionicons } from '@expo/vector-icons';
 
-// Set the timeout duration for assignment completion
-const timeOutDuration = 10000; //10seconds for demo
+// Functional component for handling tasks
+export default function Tasks({ navigation }) {
+  const appRef = firebase.firestore().collection('assignments');
 
-//other timeout values: 10sec = 10000, 30sec=30000, 1hr = 1 * 60 * 60 * 1000, 1day = 1 * 24 * 60 * 60 * 1000, 10days = 10 * 24 * 60 * 60 * 1000, 15days = 15 * 24 * 60 * 60 * 1000, 30days = 30 * 24 * 60 * 60 * 1000
+  const [incompleteAssignments, setIncompleteAssignments] = useState([]);
+  const [completedAssignments, setCompletedAssignments] = useState([]);
 
-// Functional component for displaying tasks and assignments
-function Tasks({ navigation, route }) {
-  // State variables to manage assignments, archive, timeouts, and background color
-  const [assignments, setAssignments] = useState([
-    {
-      id: 1,
-      dateCreated: '2023-11-11',
-      dueDate: '2023-11-20',
-      time: '10:00 AM',
-      reminder: 5,
-      subject: 'APPDEV1',
-      description: 'Create a React App',
-      submission: 'online',
-      isComplete: false,
-      dateCompleted: null,
-      archiveDate: null,
-      archived: false,
-    },
-    {
-      id: 2,
-      dateCreated: '2023-11-11',
-      dueDate: '2023-11-20',
-      time: '3:00 PM',
-      reminder: null,
-      subject: 'OPSYST1',
-      description: 'Research on Linux OS',
-      submission: '1/4',
-      isComplete: false,
-      dateCompleted: null,
-      archiveDate: null,
-      archived: false,
-    },
-    {
-      id: 3,
-      dateCreated: '2023-11-11',
-      dueDate: '2023-11-20',
-      time: '3:00 PM',
-      reminder: null,
-      subject: 'AUTHFL1',
-      description: 'Create CFGs',
-      submission: '1 whole',
-      isComplete: false,
-      dateCompleted: null,
-      archiveDate: null,
-      archived: false,
-    },
-  ]); // Initial assignments data
-  const [archive, setArchive] = useState([]); // Archived assignments
-  const [timeoutIds, setTimeoutIds] = useState({}); // Timeout IDs for managing timeouts
-  const [backgroundColor, setBackgroundColor] = useState('white'); // Initial background color
-
-  // Function to handle navigation to AssignmentDetails screen on assignment press
-  const handleAssignmentPress = (item) => {
-    navigation.navigate('AssignmentDetails', { assignmentDetails: item });
-  };
-
-  // Effect to update navigation params when the 'archive' state changes
   useEffect(() => {
-    navigation.setParams({ archive });
-  }, [archive]);
+    pullDataFromFirestore();
+  }, []);
 
-  // Function to toggle completion status of an assignment
-  const toggleCompletion = (itemId) => {
-    setAssignments((prevAssignments) =>
-      prevAssignments.map((item) => {
-        if (item.id === itemId) {
-          // Clear existing timeout if it exists
-          if (timeoutIds[itemId]) {
-            clearTimeout(timeoutIds[itemId]);
-            setTimeoutIds((prevTimeoutIds) => {
-              const { [itemId]: removedTimeoutId, ...rest } = prevTimeoutIds;
-              return rest;
-            });
-          }
+  const pullDataFromFirestore = () => {
+    appRef.orderBy('createdAt', 'desc').onSnapshot(
+      querySnapshot => {
+        const incompleteData = [];
+        const completedData = [];
 
-          // Update assignment details based on completion status
-          const isComplete = !item.isComplete;
-          const dateCompleted = isComplete ? new Date().toString() : null;
-          const archiveDate = isComplete ? new Date(Date.now() + timeOutDuration).toString() : null;
+        querySnapshot.forEach((document) => {
+          const { createdAt, description, dueDate, reminder, subject, submission, isComplete, dateCompleted, archivedDate, archived } = document.data();
 
-          let archived = item.archived;
-
-          const newAssignment = {
-            ...item,
+          const assignment = {
+            id: document.id,
+            description,
+            dueDate,
+            reminder,
+            subject,
+            submission,
             isComplete,
-            dateCompleted,
-            archiveDate,
+            dateCompleted: dateCompleted ? new Date(dateCompleted) : null,
+            archivedDate: archivedDate ? new Date(archivedDate) : null,
+            createdAt,
+            archived
           };
 
-          // If the assignment is marked as complete, schedule a new timeout after 10 seconds
           if (isComplete) {
-            const timeoutId = setTimeout(() => {
-              archived = !archived;
-
-              // Move the completed assignment to the archive array
-              setArchive((prevArchive) => [...prevArchive, { ...newAssignment, archived }]);
-              
-              // Remove the completed assignment from the assignments array
-              setAssignments((prevAssignments) => prevAssignments.filter((a) => a.id !== itemId));
-            }, timeOutDuration);
-
-            // Save the timeoutId in state to manage and clear it if needed
-            setTimeoutIds((prevTimeoutIds) => ({
-              ...prevTimeoutIds,
-              [itemId]: timeoutId,
-            }));
+            completedData.push(assignment);
+          } else {
+            incompleteData.push(assignment);
           }
+        });
 
-          return { ...newAssignment, archived };
-        } else {
-          return item;
-        }
-      })
+        setIncompleteAssignments(incompleteData);
+        setCompletedAssignments(completedData);
+      }
     );
   };
 
-  // Filter assignments based on completion status
-  const incompleteAssignments = assignments.filter((item) => !item.isComplete);
-  const completeAssignments = assignments.filter((item) => item.isComplete);
-
-  // Render the component
   return (
-    <View style={{ flex: 1, padding: 15, backgroundColor: backgroundColor, color: '#5b5b5b' }}>
-      <ScrollView>
-        {/* Display incomplete assignments */}
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5b5b5b' }}>
-            Assignments
-          </Text>
-          {incompleteAssignments.map((item) => (
-            <TouchableOpacity key={item.id} onPress={() => handleAssignmentPress(item)}>
-              <AssignmentItem item={item} onToggleCompletion={() => toggleCompletion(item.id)} />
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Display complete assignments if any */}
-        {completeAssignments.length > 0 && (
-          <View style={{ marginBottom: 20 }}>
-            <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5b5b5b' }}>
-              Complete
-            </Text>
-            {completeAssignments.map((item) => (
-              <TouchableOpacity key={item.id} onPress={() => handleAssignmentPress(item)}>
-                <AssignmentItem item={item} onToggleCompletion={() => toggleCompletion(item.id)} />
-              </TouchableOpacity>
-            ))}
+    <View style={styles.container}>
+      <View style={{  }}>
+        {incompleteAssignments.length > 0 ? (
+          <>
+            <Text style={{ fontSize: 17, fontWeight: 'bold', marginBottom: 10, color:'#008080' }}>Remaining Tasks</Text>
+            <ScrollView>
+              {incompleteAssignments.map((item) => (
+                <AssignmentItem
+                  key={`incomplete-${item.id}`}
+                  item={item}
+                  onToggleCompletion={(itemId) => {
+                    console.log('Toggle completion for item with ID:', itemId);
+                  }}
+                />
+              ))}
+            </ScrollView>
+          </>
+        ) : (
+          <View style={styles.noTasksContainer}>
+            <Text style={styles.noTasksText}>Take a rest! No more tasks left to do.</Text>
+            <Image
+              source={{ uri: 'https://assets-global.website-files.com/603c87adb15be3cb0b3ed9b5/610e354b42d21a7b18a9270a_41.png' }}
+              style={{ width: 200, height: 200, resizeMode: 'contain', alignSelf: 'center', opacity: 0.5 }}
+            />
           </View>
         )}
+      </View>
 
-        {/* Display archived assignments */}
-        {/* <Archives archive={archive} /> */}
-
-      </ScrollView>
+      <View style={{ flex: 1, paddingBottom: 60 }}>
+        {completedAssignments.length > 0 && (
+          <>
+            <Text style={{ fontSize: 17, fontWeight: 'bold', marginTop: 20, marginBottom: 10, color: '#008080' }}>Completed</Text>
+            <ScrollView>
+              {completedAssignments.map((item) => (
+                <AssignmentItem
+                  key={`completed-${item.id}`}
+                  item={item}
+                  onToggleCompletion={(itemId) => {
+                    console.log('Toggle completion for item with ID:', itemId);
+                  }}
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
+      </View>
 
       {/* Button for adding a new task */}
       <TouchableOpacity
@@ -171,19 +106,17 @@ function Tasks({ navigation, route }) {
           position: 'absolute',
           bottom: '11%',
           right: 15,
-          backgroundColor: 'blue',
+          backgroundColor: '#008080',
           alignItems: 'center',
           justifyContent: 'center',
           marginTop: 20,
           borderRadius: 100,
           height: 70,
           width: 70,
-          borderWidth: 10,
-          borderColor: 'rgba(0,0,255,0.1)',
+          borderWidth: 8,
+          borderColor: 'rgba(0,128,128,0.3)',
         }}
-        onPress={() => {
-          // navigation.navigate('AddTask');
-        }}
+        onPress={() => navigation.navigate('Add Assignment')}
       >
         <Text style={{ color: 'white', textAlign: 'center' }}>
           <Ionicons name="ios-add" size={25} color="white" />
@@ -193,5 +126,20 @@ function Tasks({ navigation, route }) {
   );
 }
 
-// Export the component as the default export
-export default Tasks;
+const styles = {
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 15,
+  },
+  noTasksContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noTasksText: {
+    fontSize: 16,
+    marginTop: 20,
+    color: '#cecece',
+    textAlign: 'center',
+  },
+};
