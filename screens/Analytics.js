@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { firebase } from '../config';
-import AssignmentItem from '../components/AssignmentItem';
 import { LineChart } from 'react-native-chart-kit';
 
 function Analytics() {
@@ -20,7 +19,7 @@ function Analytics() {
         const incompleteData = [];
         const completedData = [];
 
-        querySnapshot.forEach((document) => {
+        querySnapshot.forEach(document => {
           const { isComplete } = document.data();
 
           if (isComplete) {
@@ -41,10 +40,17 @@ function Analytics() {
 
   // Chart Data
   const chartData = {
-    labels: ['Not Complete', 'Complete'],
+    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'], // Update with your actual timeline
     datasets: [
       {
-        data: [incompleteTasksCount, completedTasksCount],
+        data: Array(incompleteTasksCount).fill(incompleteTasksCount),
+        color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // Red for remaining tasks
+        strokeWidth: 2,
+      },
+      {
+        data: Array(completedTasksCount).fill(completedTasksCount),
+        color: (opacity = 1) => `rgba(0, 128, 0, ${opacity})`, // Green for completed tasks
+        strokeWidth: 2,
       },
     ],
   };
