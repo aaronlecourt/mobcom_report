@@ -31,6 +31,7 @@ const AddAssignmentScreen = ({ navigation }) => {
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
   const [dueDate, setDueDate] = useState("");
   const [dueTime, setDueTime] = useState("");
+  const [dueDateTime, setDueDateTime] = useState(null);
   const [buttonText, setButtonText] = useState("Show Date and Time Picker");
   const [description, setDescription] = useState("");
   const [reminder, setReminder] = useState("");
@@ -178,12 +179,22 @@ const AddAssignmentScreen = ({ navigation }) => {
       setButtonText("Show Date and Time Picker");
       Keyboard.dismiss();
       navigation.goBack();
+
+      const dueDateTimeValue = dueDateTime || new Date(); // Default to current time if not set
+
+      const reminderDate = new Date(dueDateTimeValue.getTime() - reminder * 60 * 1000);
+
+      if (reminderDate > new Date()) {
+        await scheduleNotification(reminderDate, "Reminder", `You have an assignment due soon: ${description}`);
+      }
+
+      if (dueDateTimeValue > new Date()) {
+        await scheduleNotification(dueDateTimeValue, "Due Time", `Your assignment ${description} is due now`);
+      }
     } catch (error) {
       console.log(error);
     }
 
-    await schedulePushNotification();
-    await scheduleReminder();
   };
 
   const showDatePicker = () => {
@@ -237,7 +248,7 @@ const AddAssignmentScreen = ({ navigation }) => {
     );
 
     if (selectedTime >= currentTime) {
-      setDueTime(dateTime);
+      setDueDateTime(dateTime); // Save the combined date and time
       hideTimePicker();
     } else {
       alert("Please select a time that is not earlier than the current time.");
@@ -245,35 +256,16 @@ const AddAssignmentScreen = ({ navigation }) => {
     }
   };
 
-  const schedulePushNotification = async () => {
-    const notificationTitle = "Reminder";
-    const notificationBody = `Your assignment ${description} is due now `;
-
+  const scheduleNotification = async (triggerDate, title, body) => {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: notificationTitle,
-        body: notificationBody,
+        title: title,
+        body: body,
         sound: 'default',
         vibrate: [0, 250, 250, 250],
         data: { data: "goes here" },
       },
-      trigger: { seconds: reminder * 60 },
-    });
-  };
-
-  const scheduleReminder = async () => {
-    const notificationTitle = "Reminder";
-    const notificationBody = `You have an assignment due in ${reminder} minutes: ${description}`;
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: notificationTitle,
-        body: notificationBody,
-        sound: 'default',
-        vibrate: [0, 250, 250, 250],  
-        data: { data: "goes here" },
-      },
-      trigger: { seconds: reminder * 60 },
+      trigger: { date: triggerDate },
     });
   };
 
@@ -340,10 +332,10 @@ const AddAssignmentScreen = ({ navigation }) => {
           <Text style={styles.buttonText2}>
             {dueDate
               ? `${dueDate.toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}`
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}`
               : "Select a Date"}
           </Text>
         </TouchableOpacity>
@@ -370,11 +362,11 @@ const AddAssignmentScreen = ({ navigation }) => {
             <Text style={styles.inputLabel}>Due Time</Text>
           </View>
           <Text style={styles.buttonText2}>
-            {dueTime
-              ? `${dueTime.toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}`
+            {dueDateTime
+              ? `${dueDateTime.toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}`
               : "Select Time"}
           </Text>
         </TouchableOpacity>
