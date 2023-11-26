@@ -13,6 +13,15 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { firebase } from "../config";
 import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
+import * as Notifications from "expo-notifications";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 const AddAssignmentScreen = ({ navigation }) => {
   const appRef = firebase.firestore().collection("assignments");
@@ -78,10 +87,7 @@ const AddAssignmentScreen = ({ navigation }) => {
   };
 
   const updateStatusBarStyle = (isModalOpen) => {
-    // Update status bar style
     StatusBar.setBarStyle(isModalOpen ? "light-content" : "dark-content");
-
-    // Update status bar background color and opacity
     StatusBar.setBackgroundColor(
       isModalOpen ? "rgba(0, 0, 0, 0.5)" : "transparent",
       true
@@ -89,37 +95,38 @@ const AddAssignmentScreen = ({ navigation }) => {
   };
 
   const addNewSubject = async () => {
-    if (newSubject.trim() === '') {
-      alert('Please enter a subject name');
+    if (newSubject.trim() === "") {
+      alert("Please enter a subject name");
       return;
     }
-  
-    // Check if the subject already exists
-    const isSubjectExists = subjects.some(subject => subject.name.toLowerCase() === newSubject.toLowerCase());
-  
+
+    const isSubjectExists = subjects.some(
+      (subject) => subject.name.toLowerCase() === newSubject.toLowerCase()
+    );
+
     if (isSubjectExists) {
-      alert('Subject with the same name already exists');
-      setNewSubject('');
+      alert("Subject with the same name already exists");
+      setNewSubject("");
       return;
     }
-  
+
     try {
       await subjectsRef.add({ name: newSubject });
-      alert('Subject added successfully!');
-      setNewSubject('');
-  
-      // Fetch updated list of subjects
+      alert("Subject added successfully!");
+      setNewSubject("");
+
       const snapshot = await subjectsRef.get();
-      const subjectsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const subjectsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       setSubjects(subjectsData);
     } catch (error) {
-      console.error('Error adding subject: ', error);
+      console.error("Error adding subject: ", error);
     }
   };
-  
 
-  const pushToFirebase = () => {
-    // Check if subject is selected
+  const pushToFirebase = async () => {
     if (
       !description ||
       !dueDate ||
@@ -130,7 +137,6 @@ const AddAssignmentScreen = ({ navigation }) => {
       return;
     }
 
-    // Parse the string dueDate and dueTime to Date objects
     const parsedDueDate = new Date(dueDate);
 
     if (isNaN(parsedDueDate.getTime())) {
@@ -138,11 +144,11 @@ const AddAssignmentScreen = ({ navigation }) => {
       return;
     }
 
-    const timestamp = new Date().toISOString(); // Convert the current date to string
+    const timestamp = new Date().toISOString();
     const container = {
       createdAt: timestamp,
       description,
-      dueDate: parsedDueDate.toISOString(), // Save as a string
+      dueDate: parsedDueDate.toISOString(),
       reminder,
       subject: selectedSubject,
       submission,
@@ -152,39 +158,50 @@ const AddAssignmentScreen = ({ navigation }) => {
       archived,
     };
 
-    appRef
-      .add(container)
-      .then(() => {
-        setSelectedSubject("");
-        setSelectedSubmissionFormat("");
-        setSubmission("");
-        alert("Successfully added!");
-        setDescription("");
-        setDueDate("");
-        setReminder("");
-        setSelectedSubject("");
-        setSubmission("");
-        setIsComplete(false);
-        setDateCompleted(null);
-        setArchivedDate(null);
-        setArchived(false);
-        hideDatePicker();
-        hideTimePicker();
-        setButtonText("Show Date and Time Picker");
-        Keyboard.dismiss();
-        navigation.goBack();
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    try {
+      await appRef.add(container);
+      setSelectedSubject("");
+      setSelectedSubmissionFormat("");
+      setSubmission("");
+      alert("Successfully added!");
+      setDescription("");
+      setDueDate("");
+      setReminder("");
+      setSelectedSubject("");
+      setSubmission("");
+      setIsComplete(false);
+      setDateCompleted(null);
+      setArchivedDate(null);
+      setArchived(false);
+      hideDatePicker();
+      hideTimePicker();
+      setButtonText("Show Date and Time Picker");
+      Keyboard.dismiss();
+      navigation.goBack();
+    } catch (error) {
+      console.log(error);
+    }
+
+    await schedulePushNotification();
+    await scheduleReminder();
   };
 
-  const showDatePicker = () => { setDatePickerVisibility(true); };
-  const hideDatePicker = () => { setDatePickerVisibility(false); };
-  const showTimePicker = () => { setTimePickerVisibility(true); };
-  const hideTimePicker = () => { setTimePickerVisibility(false); };
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
 
-  // Function to handle the selection of submission format
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const showTimePicker = () => {
+    setTimePickerVisibility(true);
+  };
+
+  const hideTimePicker = () => {
+    setTimePickerVisibility(false);
+  };
+
   const handleSubmissionFormatSelection = (format) => {
     setSelectedSubmissionFormat(format.name);
     toggleSubFormatModal();
@@ -192,10 +209,13 @@ const AddAssignmentScreen = ({ navigation }) => {
   };
 
   const handleDateConfirm = (dateTime) => {
-    const currentDate = new Date(); // Get the current date
-    const startOfDayCurrent = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-  
-    // Check if the selected date is not earlier than today
+    const currentDate = new Date();
+    const startOfDayCurrent = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      currentDate.getDate()
+    );
+
     if (dateTime >= startOfDayCurrent) {
       setDueDate(dateTime);
       hideDatePicker();
@@ -207,10 +227,7 @@ const AddAssignmentScreen = ({ navigation }) => {
   };
 
   const handleTimeConfirm = (dateTime) => {
-    // Get the current time
     const currentTime = new Date();
-  
-    // Create a new Date object with the current date and the selected time
     const selectedTime = new Date(
       currentTime.getFullYear(),
       currentTime.getMonth(),
@@ -218,8 +235,7 @@ const AddAssignmentScreen = ({ navigation }) => {
       dateTime.getHours(),
       dateTime.getMinutes()
     );
-  
-    // Check if the selected time is not earlier than the current time
+
     if (selectedTime >= currentTime) {
       setDueTime(dateTime);
       hideTimePicker();
@@ -228,20 +244,37 @@ const AddAssignmentScreen = ({ navigation }) => {
       setTimePickerVisibility(false);
     }
   };
-  
-  const handleDeleteSubject = async (subjectId) => {
-    try {
-      // Remove the subject from the database
-      await subjectsRef.doc(subjectId).delete();
 
-      // Update the list of subjects
-      const updatedSubjects = subjects.filter(
-        (subject) => subject.id !== subjectId
-      );
-      setSubjects(updatedSubjects);
-    } catch (error) {
-      console.error("Error deleting subject: ", error);
-    }
+  const schedulePushNotification = async () => {
+    const notificationTitle = "Reminder";
+    const notificationBody = `Your assignment ${description} is due now `;
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: notificationTitle,
+        body: notificationBody,
+        sound: 'default',
+        vibrate: [0, 250, 250, 250],
+        data: { data: "goes here" },
+      },
+      trigger: { seconds: reminder * 60 },
+    });
+  };
+
+  const scheduleReminder = async () => {
+    const notificationTitle = "Reminder";
+    const notificationBody = `You have an assignment due in ${reminder} minutes: ${description}`;
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: notificationTitle,
+        body: notificationBody,
+        sound: 'default',
+        vibrate: [0, 250, 250, 250],  
+        data: { data: "goes here" },
+      },
+      trigger: { seconds: reminder * 60 },
+    });
   };
 
   return (
