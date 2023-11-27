@@ -180,7 +180,7 @@ const AddAssignmentScreen = ({ navigation }) => {
       Keyboard.dismiss();
       navigation.goBack();
 
-      const dueDateTimeValue = dueDateTime || new Date(); // Default to current time if not set
+      const dueDateTimeValue = dueTime || new Date(); // Default to current time if not set
 
       const reminderDate = new Date(dueDateTimeValue.getTime() - reminder * 60 * 1000);
 
@@ -229,6 +229,7 @@ const AddAssignmentScreen = ({ navigation }) => {
 
     if (dateTime >= startOfDayCurrent) {
       setDueDate(dateTime);
+
       hideDatePicker();
       setButtonText(dateTime.toLocaleString());
     } else {
@@ -238,18 +239,22 @@ const AddAssignmentScreen = ({ navigation }) => {
   };
 
   const handleTimeConfirm = (dateTime) => {
-    const currentTime = new Date();
-    const selectedTime = new Date(
-      currentTime.getFullYear(),
-      currentTime.getMonth(),
-      currentTime.getDate(),
-      dateTime.getHours(),
-      dateTime.getMinutes()
-    );
+   // Get the existing dueDate
+   const existingDueDate = dueDate || new Date();
+  
+   // Create a new Date object with the existing dueDate and the selected time
+   const updatedDueDate = new Date(
+     existingDueDate.getFullYear(),
+     existingDueDate.getMonth(),
+     existingDueDate.getDate(),
+     dateTime.getHours(),
+     dateTime.getMinutes()
+   );
 
-    if (selectedTime >= currentTime) {
-      setDueDateTime(dateTime); // Save the combined date and time
-      hideTimePicker();
+    if (updatedDueDate >= new Date()) {
+    setDueDate(updatedDueDate);
+    setDueTime(dateTime);
+    hideTimePicker();
     } else {
       alert("Please select a time that is not earlier than the current time.");
       setTimePickerVisibility(false);
@@ -362,8 +367,8 @@ const AddAssignmentScreen = ({ navigation }) => {
             <Text style={styles.inputLabel}>Due Time</Text>
           </View>
           <Text style={styles.buttonText2}>
-            {dueDateTime
-              ? `${dueDateTime.toLocaleTimeString("en-US", {
+            {dueTime
+              ? `${dueTime.toLocaleTimeString("en-US", {
                 hour: "2-digit",
                 minute: "2-digit",
               })}`
