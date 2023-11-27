@@ -25,7 +25,6 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
       await appRef.doc(item.id).update(updatedData);
   
       // console.log('isComplete updated in Firebase');
-  
       setLocalIsComplete((prevIsComplete) => !prevIsComplete);
   
       // Call onToggleCompletion with the updated item
@@ -48,6 +47,7 @@ const AssignmentItem = ({ item, onToggleCompletion }) => {
               const archivedDate = new Date().toISOString();
               await archivesRef.add({
                 ...item,
+                isComplete: true,
                 archived: true,
                 archivedDate,
               });
