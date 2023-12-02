@@ -14,6 +14,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { firebase } from "../config";
 import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
+import * as Notifications from "expo-notifications";
 
 const AssignmentDetailsScreen = ({ navigation, route }) => {
   const appRef = firebase.firestore().collection("assignments");
@@ -159,6 +160,19 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
     }
   };
   
+  const scheduleNotification = async (triggerDate, title, body) => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: title,
+        body: body,
+        sound: 'default',
+        vibrate: [0, 250, 250, 250],
+        data: { data: "goes here" },
+      },
+      trigger: { date: triggerDate },
+    });
+  };
+
   const pushToFirebase = async () => {
     try {
       // Check if subject is selected
@@ -194,7 +208,44 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
         archivedDate: archivedDate ? archivedDate.toISOString() : null,
         archived,
       };
+
+      const dueDateTimeValue = dueTime || new Date(); // Default to current time if not set
   
+      // Update the reminder calculation to consider exact minutes
+      const reminderDate = new Date(dueDateTimeValue);
+      reminderDate.setMinutes(reminderDate.getMinutes() - reminder);
+  
+      // Set the seconds of the reminder to 0
+      reminderDate.setSeconds(0);
+      //Cancel existing notification
+      if (route.params.assignmentDetails.reminder) {
+        await Notifications.cancelScheduledNotificationAsync(
+          route.params.assignmentDetails.reminder
+        );
+      }
+
+      if (reminderDate >= new Date()) {
+        await scheduleNotification(
+          reminderDate,
+          "Reminder",
+          `Your assignment ${description} is due in ${reminder} minutes`
+        );
+      }
+  
+      // Update the dueDateTimeValue calculation to consider exact minutes
+      const dueTimeInMinutes = new Date(dueDateTimeValue);
+  
+      // Set the seconds of the due time to 0
+      dueTimeInMinutes.setSeconds(0);
+  
+      if (dueTimeInMinutes > new Date()) {
+        await scheduleNotification(
+          dueTimeInMinutes,
+          "Due Time",
+          `Your assignment ${description} is due now`
+        );
+      }
+      
       // Update the assignment in Firebase
       await appRef.doc(route.params.assignmentDetails.id).update(updatedFields);
   

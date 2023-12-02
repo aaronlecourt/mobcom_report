@@ -184,11 +184,11 @@ const AddAssignmentScreen = ({ navigation }) => {
       // Set the seconds of the reminder to 0
       reminderDate.setSeconds(0);
   
-      if (reminderDate > new Date()) {
+      if (reminderDate >= new Date()) {
         await scheduleNotification(
           reminderDate,
           "Reminder",
-          `You have an assignment due soon: ${description}`
+          `Your assignment ${description} is due in ${reminder} minutes`
         );
       }
   
