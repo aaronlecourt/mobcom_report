@@ -187,8 +187,8 @@ const AddAssignmentScreen = ({ navigation }) => {
       if (reminderDate >= new Date()) {
         await scheduleNotification(
           reminderDate,
-          "Reminder",
-          `Your assignment ${description} is due in ${reminder} minutes`
+          `Reminder for ${description}`,
+          `Your assignment ${description} is due in ${reminder} minutes!`
         );
       }
   
@@ -201,8 +201,8 @@ const AddAssignmentScreen = ({ navigation }) => {
       if (dueTimeInMinutes > new Date()) {
         await scheduleNotification(
           dueTimeInMinutes,
-          "Due Time",
-          `Your assignment ${description} is due now`
+          `${description}`,
+          `Your assignment "${description}" is due now!`
         );
       }
     } catch (error) {
