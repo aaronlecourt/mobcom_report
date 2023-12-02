@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { firebase } from '../config';
 
-const TIMEOUTDURATION = 10000; //10 seconds
+const TIMEOUTDURATION = 30 * 24 * 60 * 60 * 1000; //30 days in ms, 10000 is 10 sec in ms
 
 const AssignmentItem = ({ item, onToggleCompletion }) => {
   const navigation = useNavigation();
