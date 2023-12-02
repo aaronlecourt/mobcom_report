@@ -62,6 +62,16 @@ export default function Tasks({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Display "No more tasks left to do" message when both sections are empty */}
+    {incompleteAssignments.length === 0 && missedAssignments.length === 0 && (
+      <View style={styles.noTasksContainer}>
+        <Text style={styles.noTasksText}>Take a rest! No more tasks left to do.</Text>
+        <Image
+          source={{ uri: 'https://assets-global.website-files.com/603c87adb15be3cb0b3ed9b5/610e354b42d21a7b18a9270a_41.png' }}
+          style={{ width: 200, height: 200, resizeMode: 'contain', alignSelf: 'center', opacity: 0.5 }}
+        />
+      </View>
+    )}
       {/* Remaining Tasks */}
     {incompleteAssignments.length > 0 && (
       <View style={{}}>
@@ -113,17 +123,6 @@ export default function Tasks({ navigation }) {
             />
           ))}
         </ScrollView>
-      </View>
-    )}
-
-    {/* Display "No more tasks left to do" message when both sections are empty */}
-    {incompleteAssignments.length === 0 && missedAssignments.length === 0 && (
-      <View style={styles.noTasksContainer}>
-        <Text style={styles.noTasksText}>Take a rest! No more tasks left to do.</Text>
-        <Image
-          source={{ uri: 'https://assets-global.website-files.com/603c87adb15be3cb0b3ed9b5/610e354b42d21a7b18a9270a_41.png' }}
-          style={{ width: 200, height: 200, resizeMode: 'contain', alignSelf: 'center', opacity: 0.5 }}
-        />
       </View>
     )}
 
