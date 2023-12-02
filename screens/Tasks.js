@@ -74,7 +74,7 @@ export default function Tasks({ navigation }) {
     )}
       {/* Remaining Tasks */}
     {incompleteAssignments.length > 0 && (
-      <View style={{}}>
+      <View style={{flex: 1,}}>
         <Text style={{ fontSize: 17, fontWeight: 'bold', marginBottom: 10, color: '#008080' }}>Remaining Tasks</Text>
         <ScrollView>
           {incompleteAssignments.map((item) => (

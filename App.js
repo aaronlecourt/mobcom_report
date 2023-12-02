@@ -1,5 +1,6 @@
 // Import necessary React and React Navigation components
 import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -10,6 +11,7 @@ import AnalyticsScreen from './screens/Analytics';
 import ArchiveScreen from './screens/Archives';
 import AssignmentDetailsScreen from './screens/AssignmentDetailsScreen';
 import AddAssignmentScreen from './screens/AddAssignment'
+import SplashScreen from './screens/Splash';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -26,6 +28,18 @@ const screenOptions = {
 
 // Main App component
 const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 5000); // Show the splash screen for 3 seconds
+  }, []);
+
+  if (isLoading) {
+    return <SplashScreen />;
+  }
+
   return (
     
     // Wrap the app with NavigationContainer

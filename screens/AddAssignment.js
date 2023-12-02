@@ -288,6 +288,21 @@ const AddAssignmentScreen = ({ navigation }) => {
     });
   };
 
+  const handleDeleteSubject = async (subjectId) => {
+    try {
+      // Remove the subject from the database
+      await subjectsRef.doc(subjectId).delete();
+
+      // Update the list of subjects
+      const updatedSubjects = subjects.filter(
+        (subject) => subject.id !== subjectId
+      );
+      setSubjects(updatedSubjects);
+    } catch (error) {
+      console.error("Error deleting subject: ", error);
+    }
+  };
+  
   return (
     <View style={styles.container}>
       <View style={{ width: "100%", paddingTop: 16 }}>
