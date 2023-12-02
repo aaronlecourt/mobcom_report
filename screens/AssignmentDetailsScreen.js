@@ -167,18 +167,25 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
         return;
       }
   
-      // Parse the string dueDate and dueTime to Date objects
-      const parsedDueDate = new Date(dueDate);
-  
-      if (isNaN(parsedDueDate.getTime())) {
-        alert("Invalid due date or time format");
+      // Check if both date and time are selected
+      if (!dueTime) {
+        alert("Please select a due time");
         return;
       }
+  
+      // Combine the selected date and time into a single Date object
+      const combinedDueDate = new Date(
+        dueDate.getFullYear(),
+        dueDate.getMonth(),
+        dueDate.getDate(),
+        dueTime.getHours(),
+        dueTime.getMinutes()
+      );
   
       // Create an object with the updated fields
       const updatedFields = {
         description,
-        dueDate: parsedDueDate.toISOString(),
+        dueDate: combinedDueDate.toISOString(),
         reminder,
         subject: selectedSubject,
         submission,
@@ -196,7 +203,7 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
   
       // Set other state variables with the new values
       setDescription(updatedFields.description);
-      setDueDate(parsedDueDate);
+      setDueDate(combinedDueDate);
       setReminder(updatedFields.reminder);
       setSelectedSubject(updatedFields.subject);
       setSubmission(updatedFields.submission);
@@ -218,13 +225,14 @@ const AssignmentDetailsScreen = ({ navigation, route }) => {
       hideTimePicker();
       setButtonText("Show Date and Time Picker");
       Keyboard.dismiss();
-
+  
       alert("Assignment updated successfully!");
       navigation.goBack();
     } catch (error) {
       console.error("Error updating assignment: ", error);
     }
   };
+  
   
   const removeFromFirebase = async () => {
     try {

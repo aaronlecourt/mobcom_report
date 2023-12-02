@@ -128,23 +128,18 @@ const AddAssignmentScreen = ({ navigation }) => {
   };
 
   const pushToFirebase = async () => {
-    if (
-      !description ||
-      !dueDate ||
-      !selectedSubject ||
-      !submission
-    ) {
+    if (!description || !dueDate || !selectedSubject || !submission) {
       alert("Please fill in all fields, including the due date and subject");
       return;
     }
-
+  
     const parsedDueDate = new Date(dueDate);
-
+  
     if (isNaN(parsedDueDate.getTime())) {
       alert("Invalid due date or time format");
       return;
     }
-
+  
     const timestamp = new Date().toISOString();
     const container = {
       createdAt: timestamp,
@@ -158,7 +153,7 @@ const AddAssignmentScreen = ({ navigation }) => {
       archivedDate: archivedDate ? archivedDate.toISOString() : null,
       archived,
     };
-
+  
     try {
       await appRef.add(container);
       setSelectedSubject("");
@@ -179,23 +174,42 @@ const AddAssignmentScreen = ({ navigation }) => {
       setButtonText("Show Date and Time Picker");
       Keyboard.dismiss();
       navigation.goBack();
-
+  
       const dueDateTimeValue = dueTime || new Date(); // Default to current time if not set
-
-      const reminderDate = new Date(dueDateTimeValue.getTime() - reminder * 60 * 1000);
-
+  
+      // Update the reminder calculation to consider exact minutes
+      const reminderDate = new Date(dueDateTimeValue);
+      reminderDate.setMinutes(reminderDate.getMinutes() - reminder);
+  
+      // Set the seconds of the reminder to 0
+      reminderDate.setSeconds(0);
+  
       if (reminderDate > new Date()) {
-        await scheduleNotification(reminderDate, "Reminder", `You have an assignment due soon: ${description}`);
+        await scheduleNotification(
+          reminderDate,
+          "Reminder",
+          `You have an assignment due soon: ${description}`
+        );
       }
-
-      if (dueDateTimeValue > new Date()) {
-        await scheduleNotification(dueDateTimeValue, "Due Time", `Your assignment ${description} is due now`);
+  
+      // Update the dueDateTimeValue calculation to consider exact minutes
+      const dueTimeInMinutes = new Date(dueDateTimeValue);
+  
+      // Set the seconds of the due time to 0
+      dueTimeInMinutes.setSeconds(0);
+  
+      if (dueTimeInMinutes > new Date()) {
+        await scheduleNotification(
+          dueTimeInMinutes,
+          "Due Time",
+          `Your assignment ${description} is due now`
+        );
       }
     } catch (error) {
       console.log(error);
     }
-
   };
+  
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
