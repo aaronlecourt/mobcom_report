@@ -1,16 +1,15 @@
-// Import necessary React and React Native components
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native'; // Use ScrollView instead of FlatList
+import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { firebase } from '../config';
-import AssignmentItem from '../components/AssignmentItem'; // Import the AssignmentItem component
+import AssignmentItem from '../components/AssignmentItem';
 import { Ionicons } from '@expo/vector-icons';
 
-// Functional component for handling tasks
 export default function Tasks({ navigation }) {
   const appRef = firebase.firestore().collection('assignments');
 
   const [incompleteAssignments, setIncompleteAssignments] = useState([]);
   const [completedAssignments, setCompletedAssignments] = useState([]);
+  const [missedAssignments, setMissedAssignments] = useState([]);
 
   useEffect(() => {
     pullDataFromFirestore();
@@ -21,6 +20,9 @@ export default function Tasks({ navigation }) {
       querySnapshot => {
         const incompleteData = [];
         const completedData = [];
+        const missedData = [];
+
+        const today = new Date(); // Get current date and time
 
         querySnapshot.forEach((document) => {
           const { createdAt, description, dueDate, reminder, subject, submission, isComplete, dateCompleted, archivedDate, archived } = document.data();
@@ -42,63 +44,88 @@ export default function Tasks({ navigation }) {
           if (isComplete) {
             completedData.push(assignment);
           } else {
-            incompleteData.push(assignment);
+            const assignmentDueDate = new Date(dueDate); // Convert dueDate string to Date object
+            if (assignmentDueDate < today) {
+              missedData.push(assignment);
+            } else {
+              incompleteData.push(assignment);
+            }
           }
         });
 
         setIncompleteAssignments(incompleteData);
         setCompletedAssignments(completedData);
+        setMissedAssignments(missedData);
       }
     );
   };
 
   return (
     <View style={styles.container}>
-      <View style={{  }}>
-        {incompleteAssignments.length > 0 ? (
-          <>
-            <Text style={{ fontSize: 17, fontWeight: 'bold', marginBottom: 10, color:'#008080' }}>Remaining Tasks</Text>
-            <ScrollView>
-              {incompleteAssignments.map((item) => (
-                <AssignmentItem
-                  key={`incomplete-${item.id}`}
-                  item={item}
-                  onToggleCompletion={(itemId) => {
-                    console.log('Toggle completion for item with ID:', itemId);
-                  }}
-                />
-              ))}
-            </ScrollView>
-          </>
-        ) : (
-          <View style={styles.noTasksContainer}>
-            <Text style={styles.noTasksText}>Take a rest! No more tasks left to do.</Text>
-            <Image
-              source={{ uri: 'https://assets-global.website-files.com/603c87adb15be3cb0b3ed9b5/610e354b42d21a7b18a9270a_41.png' }}
-              style={{ width: 200, height: 200, resizeMode: 'contain', alignSelf: 'center', opacity: 0.5 }}
+      {/* Remaining Tasks */}
+    {incompleteAssignments.length > 0 && (
+      <View style={{}}>
+        <Text style={{ fontSize: 17, fontWeight: 'bold', marginBottom: 10, color: '#008080' }}>Remaining Tasks</Text>
+        <ScrollView>
+          {incompleteAssignments.map((item) => (
+            <AssignmentItem
+              key={`incomplete-${item.id}`}
+              item={item}
+              onToggleCompletion={(itemId) => {
+                console.log('Toggle completion for item with ID:', itemId);
+              }}
             />
-          </View>
-        )}
+          ))}
+        </ScrollView>
       </View>
+    )}
 
-      <View style={{ flex: 1, paddingBottom: 60 }}>
-        {completedAssignments.length > 0 && (
-          <>
-            <Text style={{ fontSize: 17, fontWeight: 'bold', marginTop: 20, marginBottom: 10, color: '#008080' }}>Completed</Text>
-            <ScrollView>
-              {completedAssignments.map((item) => (
-                <AssignmentItem
-                  key={`completed-${item.id}`}
-                  item={item}
-                  onToggleCompletion={(itemId) => {
-                    console.log('Toggle completion for item with ID:', itemId);
-                  }}
-                />
-              ))}
-            </ScrollView>
-          </>
-        )}
+    {/* Display Missed Assignments */}
+    {missedAssignments.length > 0 && (
+      <View style={{}}>
+        <Text style={{ fontSize: 17, fontWeight: 'bold', marginTop: 20, marginBottom: 10, color: '#008080' }}>Pending Tasks</Text>
+        <ScrollView>
+          {missedAssignments.map((item) => (
+            <AssignmentItem
+              key={`missed-${item.id}`}
+              item={item}
+              onToggleCompletion={(itemId) => {
+                console.log('Toggle completion for missed item with ID:', itemId);
+              }}
+            />
+          ))}
+        </ScrollView>
       </View>
+    )}
+
+    {/* Completed Tasks */}
+    {completedAssignments.length > 0 && (
+      <View style={{ flex: 1, paddingBottom: 60 }}>
+        <Text style={{ fontSize: 17, fontWeight: 'bold', marginTop: 20, marginBottom: 10, color: '#008080' }}>Completed</Text>
+        <ScrollView>
+          {completedAssignments.map((item) => (
+            <AssignmentItem
+              key={`completed-${item.id}`}
+              item={item}
+              onToggleCompletion={(itemId) => {
+                console.log('Toggle completion for item with ID:', itemId);
+              }}
+            />
+          ))}
+        </ScrollView>
+      </View>
+    )}
+
+    {/* Display "No more tasks left to do" message when both sections are empty */}
+    {incompleteAssignments.length === 0 && missedAssignments.length === 0 && (
+      <View style={styles.noTasksContainer}>
+        <Text style={styles.noTasksText}>Take a rest! No more tasks left to do.</Text>
+        <Image
+          source={{ uri: 'https://assets-global.website-files.com/603c87adb15be3cb0b3ed9b5/610e354b42d21a7b18a9270a_41.png' }}
+          style={{ width: 200, height: 200, resizeMode: 'contain', alignSelf: 'center', opacity: 0.5 }}
+        />
+      </View>
+    )}
 
       {/* Button for adding a new task */}
       <TouchableOpacity
