@@ -24,67 +24,71 @@ function Analytics() {
     ]
   });
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = () => {
       try {
         const appRef = firebase.firestore().collection('assignments');
-        const snapshot = await appRef.get();
   
-        if (!snapshot.empty) {
-          let totalData = new Array(7).fill(snapshot.size);
-          let idealData = [...totalData]; // Copy totalData for the ideal burndown
-
-          const currentDate = new Date();
-
-          setNewAssignmentsCount(snapshot.docs.filter(doc => !doc.data().isComplete && new Date(doc.data().dueDate) >= currentDate).length);
-          setMissedAssignmentsCount(snapshot.docs.filter(doc => !doc.data().isComplete && new Date(doc.data().dueDate) < currentDate).length);
-          setFinishedAssignmentsCount(snapshot.docs.filter(doc => doc.data().isComplete).length);
-
-          // Fetch and count the archived assignments from the 'archives' collection
-          const archivesRef = firebase.firestore().collection('archives');
-          const archivesSnapshot = await archivesRef.get();
-          setArchivedAssignmentsCount(archivesSnapshot.size);
-
-
-          snapshot.forEach((doc) => {
-            const assignment = doc.data();
-            const createdAt = new Date(assignment.createdAt);
-            const dayOfWeek = createdAt.getDay();
-          
-            if (assignment.isComplete) {
-              for (let i = dayOfWeek; i < totalData.length; i++) {
-                totalData[i]--;
+        // Listen for real-time updates
+        appRef.onSnapshot((snapshot) => {
+          if (!snapshot.empty) {
+            let totalData = new Array(7).fill(snapshot.size);
+            let idealData = [...totalData]; // Copy totalData for the ideal burndown
+  
+            const currentDate = new Date();
+  
+            setNewAssignmentsCount(snapshot.docs.filter(doc => !doc.data().isComplete && new Date(doc.data().dueDate) >= currentDate).length);
+            setMissedAssignmentsCount(snapshot.docs.filter(doc => !doc.data().isComplete && new Date(doc.data().dueDate) < currentDate).length);
+            setFinishedAssignmentsCount(snapshot.docs.filter(doc => doc.data().isComplete).length);
+  
+            // Fetch and count the archived assignments from the 'archives' collection
+            const archivesRef = firebase.firestore().collection('archives');
+            archivesRef.onSnapshot((archivesSnapshot) => {
+              setArchivedAssignmentsCount(archivesSnapshot.size);
+            });
+  
+            snapshot.forEach((doc) => {
+              const assignment = doc.data();
+              const createdAt = new Date(assignment.createdAt);
+              const dayOfWeek = createdAt.getDay();
+            
+              if (assignment.isComplete) {
+                for (let i = dayOfWeek; i < totalData.length; i++) {
+                  totalData[i]--;
+                }
               }
-            }
-          });
-          
-          // Calculate the ideal burndown
+            });
+            
+            // Calculate the ideal burndown
             const decrement = snapshot.size / 6;
             for (let i = 1; i < idealData.length; i++) {
               idealData[i] = idealData[i - 1] - decrement;
             }
-
-          setData({
-            labels: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-            datasets: [
-              { data: totalData, color: () => '#008080', label: 'Actual'},
-              { data: idealData, color: () => '#cecece', label: 'Ideal'},
-              {
-                data: [0], // This will force the Y-axis to start from 0
-                color: (opacity = 1) => `rgba(0, 0, 0, 0)`, // Set color to transparent
-                strokeWidth: 0
-              }
-            ]
-          });
-        } else {
-          console.log('No documents found in the collection.');
-        }
+  
+            setData({
+              labels: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+              datasets: [
+                { data: totalData, color: () => '#008080', label: 'Actual'},
+                { data: idealData, color: () => '#cecece', label: 'Ideal'},
+                {
+                  data: [0], // This will force the Y-axis to start from 0
+                  color: (opacity = 1) => `rgba(0, 0, 0, 0)`, // Set color to transparent
+                  strokeWidth: 0
+                }
+              ]
+            });
+          } else {
+            console.log('No documents found in the collection.');
+          }
+        });
+  
       } catch (error) {
         console.error('Error fetching data: ', error);
       }
     };
   
     fetchData();
-  });
+  }, []);
+  
   return (
     <View style={{ flex: 1, backgroundColor: '#fff', }}>
       <View style={{ padding: 10, alignItems: 'center' }}>

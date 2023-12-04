@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mobcom_report",
+    "name": "pengussignment",
     "slug": "mobcom_report",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -21,10 +21,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#008080"
-      }
+      },
+      "package": "com.aaron_lecourt.pengussignment"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "274a9fbd-d7e8-4e92-be1b-799e6597fabf"
+      }
     }
   }
 }

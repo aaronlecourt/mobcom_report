@@ -184,7 +184,7 @@ const AddAssignmentScreen = ({ navigation }) => {
       // Set the seconds of the reminder to 0
       reminderDate.setSeconds(0);
   
-      if (reminderDate >= new Date()) {
+      if (reminder !==0 && reminderDate >= new Date()) {
         await scheduleNotification(
           reminderDate,
           `Reminder for ${description}`,

@@ -13,6 +13,10 @@ export default function Tasks({ navigation }) {
 
   useEffect(() => {
     pullDataFromFirestore();
+    const intervalId = setInterval(pullDataFromFirestore, 1000);
+
+    // Clear the interval when the component unmounts
+    return () => clearInterval(intervalId);
   }, []);
 
   const pullDataFromFirestore = () => {
@@ -74,7 +78,7 @@ export default function Tasks({ navigation }) {
     )}
       {/* Remaining Tasks */}
     {incompleteAssignments.length > 0 && (
-      <View style={{flex: 1,}}>
+      <View style={{}}>
         <Text style={{ fontSize: 17, fontWeight: 'bold', marginBottom: 10, color: '#008080' }}>Remaining Tasks</Text>
         <ScrollView>
           {incompleteAssignments.map((item) => (
@@ -110,7 +114,7 @@ export default function Tasks({ navigation }) {
 
     {/* Completed Tasks */}
     {completedAssignments.length > 0 && (
-      <View style={{ flex: 1, paddingBottom: 60 }}>
+      <View style={{ }}>
         <Text style={{ fontSize: 17, fontWeight: 'bold', marginTop: 20, marginBottom: 10, color: '#008080' }}>Completed</Text>
         <ScrollView>
           {completedAssignments.map((item) => (
